@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:ws_app/services/supabase_clients_sync_service.dart';
 
 import '../models/client.dart';
 import '../models/id_helper.dart';
 import '../repositories/client_repository.dart';
+import '../services/supabase_sync_service.dart';
 
 class ClientFormScreen extends StatefulWidget {
   final ClientRepository clientRepo;
@@ -55,23 +57,19 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   }
 
   Future<void> _save() async {
-    final ok = _formKey.currentState?.validate() ?? false;
-    if (!ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fix the errors before saving')),
-      );
-      return;
-    }
+final now = DateTime.now();
+await SupabaseClientsSyncService(clientRepo: widget.clientRepo).trySync();
 
-    final client = Client(
-      id: newId(),
-      name: _nameCtrl.text.trim(),
-      address: _addressCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
-      invoiceDetails: _invoiceCtrl.text.trim().isEmpty ? null : _invoiceCtrl.text.trim(),
-      locationLink: null, // no longer used in MVP
-    );
-
+final client = Client(
+  id: newId(),
+  name: _nameCtrl.text.trim(),
+  address: _addressCtrl.text.trim(),
+  phone: _phoneCtrl.text.trim(),
+  invoiceDetails: _invoiceCtrl.text.trim().isEmpty ? null : _invoiceCtrl.text.trim(),
+  locationLink: null,
+  createdAt: now,
+  updatedAt: now,
+);
     await widget.clientRepo.add(client);
     if (!mounted) return;
     Navigator.pop(context, true);

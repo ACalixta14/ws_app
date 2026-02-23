@@ -8,6 +8,8 @@ import '../repositories/client_repository.dart';
 import '../repositories/driver_repository.dart';
 import '../repositories/service_order_repository.dart';
 import 'client_form_screen.dart';
+import '../services/supabase_orders_sync_service.dart';
+import '../services/supabase_sync_service.dart';
 
 class CreateServiceOrderScreen extends StatefulWidget {
   final ClientRepository clientRepo;
@@ -152,6 +154,12 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       );
 
       await widget.orderRepo.add(order);
+      await SupabaseSyncService(
+        clientRepo: widget.clientRepo,
+        orderRepo: widget.orderRepo,
+      ).trySyncAll();
+      
+      await SupabaseOrdersSyncService(orderRepo: widget.orderRepo).trySync();
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

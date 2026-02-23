@@ -24,7 +24,7 @@ class DriverHomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Driver'),
+        title: const Text('Selecionar Motorista'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -45,7 +45,7 @@ class DriverHomeScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Choose your name (MVP):'),
+          const Text('Escolha seu nome:'),
           const SizedBox(height: 12),
           ...drivers.map(
             (d) => Padding(

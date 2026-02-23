@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ws_app/services/supabase_orders_sync_service.dart';
 
 import '../models/order_status.dart';
 import '../models/service_order.dart';
@@ -119,6 +121,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
         ],
       ),
     );
+    await SupabaseOrdersSyncService(orderRepo: widget.orderRepo).trySync();
 
     if (confirmed != true) return;
 

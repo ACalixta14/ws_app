@@ -9,6 +9,10 @@ class Client {
 
   final String? invoiceDetails;
 
+  // ✅ novos campos para sync LWW
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
   const Client({
     required this.id,
     required this.name,
@@ -16,6 +20,8 @@ class Client {
     required this.phone,
     this.locationLink,
     this.invoiceDetails,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   Client copyWith({
@@ -25,6 +31,8 @@ class Client {
     String? phone,
     String? locationLink,
     String? invoiceDetails,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return Client(
       id: id ?? this.id,
@@ -33,6 +41,8 @@ class Client {
       phone: phone ?? this.phone,
       locationLink: locationLink ?? this.locationLink,
       invoiceDetails: invoiceDetails ?? this.invoiceDetails,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -44,10 +54,14 @@ class Client {
       'phone': phone,
       'locationLink': locationLink,
       'invoiceDetails': invoiceDetails,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
   static Client fromMap(Map data) {
+    final now = DateTime.now();
+
     return Client(
       id: (data['id'] ?? '') as String,
       name: (data['name'] ?? '') as String,
@@ -55,6 +69,8 @@ class Client {
       phone: (data['phone'] ?? '') as String,
       locationLink: data['locationLink'] as String?,
       invoiceDetails: data['invoiceDetails'] as String?,
+      createdAt: data['createdAt'] == null ? now : DateTime.parse(data['createdAt'] as String),
+      updatedAt: data['updatedAt'] == null ? now : DateTime.parse(data['updatedAt'] as String),
     );
   }
 }
