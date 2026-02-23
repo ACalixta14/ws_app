@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../models/order_status.dart';
 import '../models/service_order.dart';
 import '../repositories/client_repository.dart';
-import '../repositories/service_order_repository.dart';
 import '../repositories/driver_repository.dart';
+import '../repositories/service_order_repository.dart';
 import '../services/data_filters.dart';
-import 'service_order_detail_screen.dart';
 import 'driver_home_screen.dart';
+import 'service_order_detail_screen.dart';
 
 class PlanScreen extends StatefulWidget {
   final ServiceOrderRepository orderRepo;
@@ -33,6 +33,9 @@ class PlanScreen extends StatefulWidget {
 }
 
 class _PlanScreenState extends State<PlanScreen> {
+  static const Color brand = Color(0xFF044950);
+  static const Color brand2 = Color(0xFF0A6C74);
+
   void _refresh() => setState(() {});
 
   List<ServiceOrder> _getFilteredOrders() {
@@ -54,62 +57,167 @@ class _PlanScreenState extends State<PlanScreen> {
     final today = filteredOrders.where(isToday).toList();
     final tomorrow = filteredOrders.where(isTomorrow).toList();
 
-    // mantém ordenado por hora
     today.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     tomorrow.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
 
+    const double maxContentWidth = 520;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Today / Tomorrow'),
-        actions: [
-          if (!widget.isAdmin)
-            IconButton(
-              tooltip: 'Change driver',
-              icon: const Icon(Icons.switch_account),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => DriverHomeScreen(
-                      clientRepo: widget.clientRepo,
-                      driverRepo: widget.driverRepo,
-                      orderRepo: widget.orderRepo,
+      backgroundColor: const Color(0xFFF6F7F8),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 22),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: maxContentWidth),
+            child: Column(
+              children: [
+                // =========================
+                // HEADER
+                // =========================
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [brand, brand2],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(24),
                     ),
                   ),
-                );
-              },
+                  child: SafeArea(
+                    bottom: false,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.14),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.18),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Today / Tomorrow',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                widget.isAdmin
+                                    ? 'Plan for all drivers'
+                                    : 'Your plan for today and tomorrow',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (!widget.isAdmin)
+                          InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => DriverHomeScreen(
+                                    clientRepo: widget.clientRepo,
+                                    driverRepo: widget.driverRepo,
+                                    orderRepo: widget.orderRepo,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.14),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.18),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.switch_account_rounded,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // =========================
+                // SECTIONS
+                // =========================
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: [
+                      _Section(
+                        title: 'Today',
+                        orders: today,
+                        driverRepo: widget.driverRepo,
+                        clientRepo: widget.clientRepo,
+                        orderRepo: widget.orderRepo,
+                        onChanged: _refresh,
+                        isAdmin: widget.isAdmin,
+                      ),
+                      const SizedBox(height: 16),
+                      _Section(
+                        title: 'Tomorrow',
+                        orders: tomorrow,
+                        driverRepo: widget.driverRepo,
+                        clientRepo: widget.clientRepo,
+                        orderRepo: widget.orderRepo,
+                        onChanged: _refresh,
+                        isAdmin: widget.isAdmin,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+              ],
             ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _Section(
-            title: 'Today',
-            orders: today,
-            driverRepo: widget.driverRepo,
-            clientRepo: widget.clientRepo,
-            orderRepo: widget.orderRepo,
-            onChanged: _refresh,
-            isAdmin: widget.isAdmin,
           ),
-          const SizedBox(height: 24),
-          _Section(
-            title: 'Tomorrow',
-            orders: tomorrow,
-            driverRepo: widget.driverRepo,
-            clientRepo: widget.clientRepo,
-            orderRepo: widget.orderRepo,
-            onChanged: _refresh,
-            isAdmin: widget.isAdmin,
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class _Section extends StatelessWidget {
+  static const Color brand = Color(0xFF044950);
+  static const Color brand2 = Color(0xFF0A6C74);
+
   final String title;
   final List<ServiceOrder> orders;
 
@@ -140,10 +248,18 @@ class _Section extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Cancel order?'),
-        content: const Text('The order will be kept in history but removed from the plan.'),
+        content: const Text(
+          'The order will be kept in history but removed from the plan.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Back')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Cancel order')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Back'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Cancel order'),
+          ),
         ],
       ),
     );
@@ -169,7 +285,6 @@ class _Section extends StatelessWidget {
     if (order.status == OrderStatus.done) return Colors.green;
     if (order.status == OrderStatus.canceled) return Colors.red;
     return null;
-    // scheduled: padrão
   }
 
   TextDecoration _statusDecoration(ServiceOrder order) {
@@ -178,24 +293,68 @@ class _Section extends StatelessWidget {
   }
 
   IconData? _statusIcon(ServiceOrder order) {
-    if (order.status == OrderStatus.done) return Icons.check_circle;
-    if (order.status == OrderStatus.canceled) return Icons.cancel;
-    return null; // scheduled
+    if (order.status == OrderStatus.done) return Icons.check_circle_rounded;
+    if (order.status == OrderStatus.canceled) return Icons.cancel_rounded;
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    // Title bar
+    final titleBar = Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            brand.withOpacity(0.12),
+            brand2.withOpacity(0.10),
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: brand.withOpacity(0.18)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            title == 'Today' ? Icons.today_rounded : Icons.calendar_month_rounded,
+            color: brand,
+          ),
+          const SizedBox(width: 10),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF111111),
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${orders.length}',
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: Colors.black54,
+            ),
+          ),
+        ],
+      ),
+    );
+
     if (orders.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          const Text('No orders'),
+          titleBar,
+          const SizedBox(height: 10),
+          _emptyState(),
         ],
       );
     }
 
+    // Group by driver (admin view). If not admin, still works (single driver).
     final grouped = <String, List<ServiceOrder>>{};
     for (final o in orders) {
       grouped.putIfAbsent(o.driverId, () => []).add(o);
@@ -204,8 +363,8 @@ class _Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
+        titleBar,
+        const SizedBox(height: 12),
         ...grouped.entries.map((entry) {
           final driver = driverRepo.getById(entry.key);
           final driverName = driver?.name ?? 'Unknown';
@@ -213,41 +372,74 @@ class _Section extends StatelessWidget {
           final driverOrders = entry.value.toList()
             ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
 
-          return Card(
+          return Container(
             margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(driverName, style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  ...driverOrders.map((order) {
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 14,
+                  color: Colors.black.withOpacity(0.05),
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: brand.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: brand.withOpacity(0.14)),
+                      ),
+                      child: const Icon(
+                        Icons.local_shipping_rounded,
+                        color: brand,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        driverName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Orders list
+                ListView.separated(
+                  itemCount: driverOrders.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (_, idx) {
+                    final order = driverOrders[idx];
                     final client = clientRepo.getById(order.clientId);
                     final clientName = client?.name ?? 'Client';
 
-                    final hh = order.scheduledAt.hour.toString().padLeft(2, '0');
-                    final mm = order.scheduledAt.minute.toString().padLeft(2, '0');
+                    final hh =
+                        order.scheduledAt.hour.toString().padLeft(2, '0');
+                    final mm =
+                        order.scheduledAt.minute.toString().padLeft(2, '0');
 
                     final statusColor = _statusColor(order);
                     final statusIcon = _statusIcon(order);
 
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: statusIcon == null
-                          ? null
-                          : Icon(statusIcon, color: statusColor),
-                      title: Text(
-                        '$hh:$mm • $clientName',
-                        style: TextStyle(
-                          decoration: _statusDecoration(order),
-                          color: statusColor,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${order.serviceType.label} • €${order.price.toStringAsFixed(0)} • ${order.status.label}',
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(16),
                       onTap: () async {
                         final changed = await Navigator.push<bool>(
                           context,
@@ -263,18 +455,128 @@ class _Section extends StatelessWidget {
                         );
                         if (changed == true) onChanged();
                       },
-                      // ✅ Cancel só Admin e só scheduled
-                      onLongPress: isAdmin && order.status == OrderStatus.scheduled
+                      onLongPress: isAdmin &&
+                              order.status == OrderStatus.scheduled
                           ? () => _cancelOrder(context, order)
                           : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF6F7F8),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: brand.withOpacity(0.14),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (statusIcon != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Icon(statusIcon, color: statusColor),
+                              )
+                            else
+                              Container(
+                                width: 24,
+                                height: 24,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.schedule_rounded,
+                                  size: 18,
+                                  color: Colors.black.withOpacity(0.35),
+                                ),
+                              ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '$hh:$mm • $clientName',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 13,
+                                      decoration: _statusDecoration(order),
+                                      color: statusColor ??
+                                          const Color(0xFF111111),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${order.serviceType.label} • €${order.price.toStringAsFixed(0)} • ${order.status.label}',
+                                    style: const TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              color: Colors.black26,
+                            ),
+                          ],
+                        ),
+                      ),
                     );
-                  }),
-                ],
-              ),
+                  },
+                ),
+              ],
             ),
           );
         }),
       ],
+    );
+  }
+
+  static Widget _emptyState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 14,
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: brand.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: brand.withOpacity(0.14)),
+            ),
+            child: const Icon(Icons.event_available_rounded, color: brand),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'No orders',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Nothing scheduled for this section.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.black54),
+          ),
+        ],
+      ),
     );
   }
 }
