@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
+import '../l10n/locale_controller.dart';
 import '../repositories/client_repository.dart';
 import '../repositories/driver_repository.dart';
 import '../repositories/service_order_repository.dart';
@@ -23,7 +25,13 @@ class RoleSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
     const double maxContentWidth = 520;
+
+    final controller = LocaleScope.of(context);
+    final lang = (controller.locale?.languageCode.isNotEmpty == true)
+        ? controller.locale!.languageCode
+        : Localizations.localeOf(context).languageCode;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F8),
@@ -63,28 +71,46 @@ class RoleSelectionScreen extends StatelessWidget {
                           fit: BoxFit.contain,
                         ),
                         const SizedBox(width: 16),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'WS_app',
-                                style: TextStyle(
+                                s.appTitle,
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 22,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              SizedBox(height: 6),
+                              const SizedBox(height: 6),
                               Text(
-                                'Choose how you want to use the app',
-                                style: TextStyle(
+                                s.chooseHow,
+                                style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
                                 ),
                               ),
                             ],
                           ),
+                        ),
+
+                        // ✅ Language toggle
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _langChip(
+                              label: 'PT',
+                              selected: lang == 'pt',
+                              onTap: () => controller.setLocale(const Locale('pt')),
+                            ),
+                            const SizedBox(height: 8),
+                            _langChip(
+                              label: 'EN',
+                              selected: lang == 'en',
+                              onTap: () => controller.setLocale(const Locale('en')),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -104,15 +130,14 @@ class RoleSelectionScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const _SectionTitle(
+                            _SectionTitle(
                               icon: Icons.info_outline_rounded,
-                              title: 'How it works',
+                              title: s.howItWorks,
                             ),
                             const SizedBox(height: 10),
-                            const Text(
-                              'Admin manages clients and orders.\n'
-                              'Driver selects their name and sees Today/Tomorrow plan.',
-                              style: TextStyle(
+                            Text(
+                              s.howItWorksDesc,
+                              style: const TextStyle(
                                 color: Colors.black54,
                                 height: 1.35,
                               ),
@@ -127,8 +152,8 @@ class RoleSelectionScreen extends StatelessWidget {
                       // =========================
                       _roleCard(
                         icon: Icons.admin_panel_settings_rounded,
-                        title: 'Continue as Admin',
-                        subtitle: 'Clients, orders, planning and sync',
+                        title: s.continueAdmin,
+                        subtitle: s.continueAdminDesc,
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
@@ -145,8 +170,8 @@ class RoleSelectionScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       _roleCard(
                         icon: Icons.local_shipping_rounded,
-                        title: 'Continue as Driver',
-                        subtitle: 'Select your name and view the plan',
+                        title: s.continueDriver,
+                        subtitle: s.continueDriverDesc,
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
@@ -167,6 +192,33 @@ class RoleSelectionScreen extends StatelessWidget {
                 const SizedBox(height: 10),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _langChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white.withOpacity(0.22) : Colors.white.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.white.withOpacity(0.18)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
           ),
         ),
       ),
