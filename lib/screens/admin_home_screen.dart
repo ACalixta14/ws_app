@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
+import '../l10n/locale_controller.dart';
 import '../repositories/client_repository.dart';
 import '../repositories/driver_repository.dart';
 import '../repositories/service_order_repository.dart';
@@ -32,12 +34,12 @@ class AdminHomeScreen extends StatelessWidget {
       );
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Export ready to share')),
+        SnackBar(content: Text(context.s.exportReady)),
       );
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Export failed: $e')),
+        SnackBar(content: Text('${context.s.exportFailed}: $e')),
       );
     }
   }
@@ -54,16 +56,16 @@ class AdminHomeScreen extends StatelessWidget {
       await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
-          title: const Text('Import summary'),
+          title: Text(context.s.importSummary),
           content: Text(
-            'Clients imported: ${result.clientsImported}\n'
-            'Orders imported: ${result.ordersImported}\n'
-            'Orders skipped (older): ${result.ordersSkippedOlder}',
+            '${context.s.clientsImported}: ${result.clientsImported}\n'
+            '${context.s.ordersImported}: ${result.ordersImported}\n'
+            '${context.s.ordersSkippedOlder}: ${result.ordersSkippedOlder}',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
+              child: Text(context.s.ok),
             ),
           ],
         ),
@@ -71,7 +73,7 @@ class AdminHomeScreen extends StatelessWidget {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Import failed: $e')),
+        SnackBar(content: Text('${context.s.importFailed}: $e')),
       );
     }
   }
@@ -80,16 +82,16 @@ class AdminHomeScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Clear all test data?'),
-        content: const Text('This will delete ALL clients and orders.'),
+        title: Text(context.s.clearAllTitle),
+        content: Text(context.s.clearAllDesc),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.s.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Clear'),
+            child: Text(context.s.clear),
           ),
         ],
       ),
@@ -102,13 +104,19 @@ class AdminHomeScreen extends StatelessWidget {
 
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('All data cleared')),
+      SnackBar(content: Text(context.s.allDataCleared)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
     const double maxContentWidth = 520;
+
+    final controller = LocaleScope.of(context);
+    final lang = (controller.locale?.languageCode.isNotEmpty == true)
+        ? controller.locale!.languageCode
+        : Localizations.localeOf(context).languageCode;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F8),
@@ -148,28 +156,46 @@ class AdminHomeScreen extends StatelessWidget {
                           fit: BoxFit.contain,
                         ),
                         const SizedBox(width: 18),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Admin',
-                                style: TextStyle(
+                                s.adminTitle,
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 22,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              SizedBox(height: 6),
+                              const SizedBox(height: 6),
                               Text(
-                                'Clients, orders, planning and sync',
-                                style: TextStyle(
+                                s.adminSubtitle,
+                                style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
                                 ),
                               ),
                             ],
                           ),
+                        ),
+
+                        // ✅ Language toggle
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _langChip(
+                              label: 'PT',
+                              selected: lang == 'pt',
+                              onTap: () => controller.setLocale(const Locale('pt')),
+                            ),
+                            const SizedBox(height: 8),
+                            _langChip(
+                              label: 'EN',
+                              selected: lang == 'en',
+                              onTap: () => controller.setLocale(const Locale('en')),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -193,8 +219,8 @@ class AdminHomeScreen extends StatelessWidget {
                     children: [
                       _card(
                         icon: Icons.people_alt_rounded,
-                        title: 'Clients',
-                        subtitle: 'Manage clients',
+                        title: s.clients,
+                        subtitle: s.manageClients,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -208,8 +234,8 @@ class AdminHomeScreen extends StatelessWidget {
                       ),
                       _card(
                         icon: Icons.add_circle_outline_rounded,
-                        title: 'Create Order',
-                        subtitle: 'New service',
+                        title: s.createOrder,
+                        subtitle: s.newService,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -225,8 +251,8 @@ class AdminHomeScreen extends StatelessWidget {
                       ),
                       _card(
                         icon: Icons.calendar_month_rounded,
-                        title: 'Plan',
-                        subtitle: 'Today / Tomorrow',
+                        title: s.plan,
+                        subtitle: s.todayTomorrow,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -244,8 +270,8 @@ class AdminHomeScreen extends StatelessWidget {
                       ),
                       _card(
                         icon: Icons.history_rounded,
-                        title: 'History',
-                        subtitle: 'Past orders',
+                        title: s.history,
+                        subtitle: s.pastOrders,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -274,10 +300,7 @@ class AdminHomeScreen extends StatelessWidget {
                     children: [
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 12,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
@@ -290,13 +313,13 @@ class AdminHomeScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: brand.withOpacity(0.18)),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.sync_rounded, color: brand),
-                            SizedBox(width: 10),
+                            const Icon(Icons.sync_rounded, color: brand),
+                            const SizedBox(width: 10),
                             Text(
-                              'Sync & Tools',
-                              style: TextStyle(
+                              s.syncTools,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF111111),
@@ -311,7 +334,7 @@ class AdminHomeScreen extends StatelessWidget {
                           Expanded(
                             child: _toolButton(
                               icon: Icons.upload_file_rounded,
-                              label: 'Export JSON',
+                              label: s.exportJson,
                               onTap: () => _exportSyncJson(context),
                             ),
                           ),
@@ -319,7 +342,7 @@ class AdminHomeScreen extends StatelessWidget {
                           Expanded(
                             child: _toolButton(
                               icon: Icons.download_rounded,
-                              label: 'Import JSON',
+                              label: s.importJson,
                               onTap: () => _importSyncJson(context),
                             ),
                           ),
@@ -328,7 +351,7 @@ class AdminHomeScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       _toolButton(
                         icon: Icons.delete_outline_rounded,
-                        label: 'Clear test data',
+                        label: s.clearTestData,
                         isDanger: true,
                         onTap: () => _clearAllData(context),
                       ),
@@ -339,6 +362,33 @@ class AdminHomeScreen extends StatelessWidget {
                 const SizedBox(height: 10),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _langChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white.withOpacity(0.22) : Colors.white.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.white.withOpacity(0.18)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
           ),
         ),
       ),
