@@ -49,14 +49,14 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   }
 
   String? _required(String? v, String label) {
-    if (v == null || v.trim().isEmpty) return '$label is required';
+    if (v == null || v.trim().isEmpty) return 'O campo $label é obrigatório';
     return null;
   }
 
   String? _phoneValidator(String? v) {
     final value = v?.trim() ?? '';
-    if (value.isEmpty) return 'Phone is required';
-    if (value.length < 6) return 'Phone seems too short';
+    if (value.isEmpty) return 'Telefone é obrigatório';
+    if (value.length < 6) return 'Telefone parece muito curto';
     return null;
   }
 

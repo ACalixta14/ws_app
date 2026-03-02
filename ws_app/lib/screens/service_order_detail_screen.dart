@@ -68,7 +68,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(content: Text('Copiado: $message')),
     );
   }
 

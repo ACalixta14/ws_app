@@ -35,7 +35,7 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
 
     if (created == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Client saved')),
+          const SnackBar(content: Text('Cliente salvo')),
       );
       setState(() {}); // refresh list
     }
@@ -45,20 +45,20 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Delete client?'),
-        content: const Text(
-          'This will delete the client. Orders will remain for now.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+          title: const Text('Excluir cliente?'),
+          content: const Text(
+            'Isso irá excluir o cliente. As ordens permanecerão por enquanto.',
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Excluir'),
+            ),
+          ],
       ),
     );
 
@@ -68,7 +68,7 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Client deleted')),
+      const SnackBar(content: Text('Cliente excluído')),
     );
     setState(() {});
   }

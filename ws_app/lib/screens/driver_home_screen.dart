@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../l10n/l10n.dart';
-import '../l10n/locale_controller.dart';
 import '../repositories/client_repository.dart';
 import '../repositories/driver_repository.dart';
 import '../repositories/service_order_repository.dart';
@@ -25,14 +23,8 @@ class DriverHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.s;
     final drivers = driverRepo.getAll();
     const double maxContentWidth = 520;
-
-    final controller = LocaleScope.of(context);
-    final lang = (controller.locale?.languageCode.isNotEmpty == true)
-        ? controller.locale!.languageCode
-        : Localizations.localeOf(context).languageCode;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F8),
@@ -88,53 +80,23 @@ class DriverHomeScreen extends StatelessWidget {
                                 color: Colors.white.withOpacity(0.18),
                               ),
                             ),
-                            child: const Icon(
-                              Icons.arrow_back_rounded,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                s.selectDriverTitle,
-                                style: const TextStyle(
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_back_rounded,
                                   color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                s.selectDriverSubtitle,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
+                                SizedBox(width: 8),
+                                Text(
+                                  'Voltar',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-
-                        // ✅ Language toggle
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _langChip(
-                              label: 'PT',
-                              selected: lang == 'pt',
-                              onTap: () => controller.setLocale(const Locale('pt')),
-                            ),
-                            const SizedBox(height: 8),
-                            _langChip(
-                              label: 'EN',
-                              selected: lang == 'en',
-                              onTap: () => controller.setLocale(const Locale('en')),
-                            ),
-                          ],
                         ),
                       ],
                     ),
@@ -149,7 +111,7 @@ class DriverHomeScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: drivers.isEmpty
-                      ? _emptyState(context)
+                      ? _emptyState()
                       : Column(
                           children: [
                             Container(
@@ -172,13 +134,13 @@ class DriverHomeScreen extends StatelessWidget {
                                   color: brand.withOpacity(0.18),
                                 ),
                               ),
-                              child: Row(
+                              child: const Row(
                                 children: [
-                                  const Icon(Icons.badge_rounded, color: brand),
-                                  const SizedBox(width: 10),
+                                  Icon(Icons.badge_rounded, color: brand),
+                                  SizedBox(width: 10),
                                   Text(
-                                    s.chooseYourName,
-                                    style: const TextStyle(
+                                    'Escolha seu nome',
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w800,
                                       color: Color(0xFF111111),
@@ -189,12 +151,12 @@ class DriverHomeScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
 
-                            // List as cards
                             ListView.separated(
                               itemCount: drivers.length,
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              separatorBuilder: (_, __) => const SizedBox(height: 10),
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 10),
                               itemBuilder: (_, i) {
                                 final d = drivers[i];
                                 return _driverCard(
@@ -229,36 +191,7 @@ class DriverHomeScreen extends StatelessWidget {
     );
   }
 
-  static Widget _langChip({
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected ? Colors.white.withOpacity(0.22) : Colors.white.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.white.withOpacity(0.18)),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Widget _emptyState(BuildContext context) {
-    final s = context.s;
-
+  static Widget _emptyState() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -285,18 +218,18 @@ class DriverHomeScreen extends StatelessWidget {
             child: const Icon(Icons.person_off_rounded, color: brand),
           ),
           const SizedBox(height: 10),
-          Text(
-            s.noDriversTitle,
-            style: const TextStyle(
+          const Text(
+            'Nenhum motorista cadastrado',
+            style: TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 16,
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            s.noDriversDesc,
+          const Text(
+            'Cadastre motoristas para que possam acessar o plano.',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.black54),
+            style: TextStyle(color: Colors.black54),
           ),
         ],
       ),

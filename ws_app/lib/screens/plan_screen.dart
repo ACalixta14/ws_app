@@ -39,7 +39,7 @@ class _PlanScreenState extends State<PlanScreen> {
   void _refresh() => setState(() {});
 
   List<ServiceOrder> _getFilteredOrders() {
-    // ✅ Agora o Plan mostra TUDO: scheduled + done + canceled
+    // ✅ Agora o Planejamento mostra TUDO: agendado + concluído + cancelado
     final all = widget.orderRepo.getAll();
 
     final filtered = widget.driverId == null
