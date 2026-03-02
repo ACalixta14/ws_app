@@ -258,8 +258,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                 children: [
                   _header(
                     context,
-                    title: 'Create Order',
-                    subtitle: 'You need at least 1 client first',
+                    title: 'Criar Ordem',
+                    subtitle: 'Você precisa de pelo menos 1 cliente primeiro',
                     trailing: const SizedBox(width: 44, height: 44),
                   ),
                   const SizedBox(height: 16),
@@ -271,17 +271,17 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                         children: [
                           const _SectionTitle(
                             icon: Icons.info_outline_rounded,
-                            title: 'Before you start',
+                            title: 'Antes de começar',
                           ),
                           const SizedBox(height: 10),
                           const Text(
-                            'You need at least 1 client before creating an order.',
+                            'Você precisa de pelo menos 1 cliente antes de criar uma ordem.',
                             style: TextStyle(color: Colors.black54),
                           ),
                           const SizedBox(height: 14),
                           _toolButton(
                             icon: Icons.person_add_alt_1_rounded,
-                            label: 'Create first client',
+                            label: 'Criar primeiro cliente',
                             onTap: _goCreateClient,
                           ),
                         ],
