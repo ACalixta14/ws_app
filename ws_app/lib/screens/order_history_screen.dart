@@ -51,7 +51,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
   }) {
     final buffer = StringBuffer();
 
-    buffer.writeln('Cliente,Data,Serviço,Motorista,Valor');
+    buffer.writeln('Cliente,Data,Serviço,Motorista,Valor'); // já está em português
 
     for (final o in orders) {
       final client = clientRepo.getById(o.clientId);

@@ -66,6 +66,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       _priceCtrl.text = (p ?? 0).toStringAsFixed(0);
     }
     _recomputeCanSave();
+    // ...existing code...
   }
 
   void _recomputeCanSave() {
@@ -73,11 +74,12 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     final hasDriver = _driverId != null;
 
     final priceOk = _serviceType == ServiceType.miscellaneous
-        ? (_priceCtrl.text.trim().isNotEmpty &&
-            double.tryParse(_priceCtrl.text.trim()) != null)
-        : true;
+      ? (_priceCtrl.text.trim().isNotEmpty &&
+        double.tryParse(_priceCtrl.text.trim()) != null)
+      : true;
 
     final newValue = hasClient && hasDriver && priceOk && !_isSaving;
+    // ...existing code...
     if (newValue != _canSave) setState(() => _canSave = newValue);
   }
 
