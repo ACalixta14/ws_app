@@ -168,7 +168,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'New Client',
+                                'Novo Cliente',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -177,7 +177,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                               ),
                               SizedBox(height: 6),
                               Text(
-                                'Fill the details to create a client',
+                                'Preencha os dados para criar um cliente',
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,

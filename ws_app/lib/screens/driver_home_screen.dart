@@ -60,8 +60,7 @@ class DriverHomeScreen extends StatelessWidget {
                         InkWell(
                           borderRadius: BorderRadius.circular(14),
                           onTap: () {
-                            Navigator.pushReplacement(
-                              context,
+                            Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
                                 builder: (_) => RoleSelectionScreen(
                                   clientRepo: clientRepo,
@@ -69,6 +68,7 @@ class DriverHomeScreen extends StatelessWidget {
                                   orderRepo: orderRepo,
                                 ),
                               ),
+                              (route) => false,
                             );
                           },
                           child: Container(
@@ -87,13 +87,13 @@ class DriverHomeScreen extends StatelessWidget {
                                   color: Colors.white,
                                 ),
                                 SizedBox(width: 8),
-                                Text(
-                                  'Voltar',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
+                                // Text(
+                                //   //'Voltar',
+                                //   style: TextStyle(
+                                //     color: Colors.white,
+                                //     fontWeight: FontWeight.w700,
+                                //   ),
+                                // ),
                               ],
                             ),
                           ),

@@ -133,7 +133,7 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Clients',
+                                'Clientes',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -142,7 +142,7 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
                               ),
                               SizedBox(height: 6),
                               Text(
-                                'Manage your client list',
+                                'Gerencie sua lista de clientes',
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
@@ -279,7 +279,7 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
           ),
           const SizedBox(height: 10),
           const Text(
-            'No clients yet',
+            'Nenhum cliente ainda',
             style: TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 16,
@@ -287,14 +287,14 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Tap “Add client” to create your first one.',
+            'Toque em “Adicionar cliente” para criar o primeiro.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.black54),
           ),
           const SizedBox(height: 14),
           _toolButton(
             icon: Icons.add_circle_outline_rounded,
-            label: 'Add client',
+            label: 'Adicionar cliente',
             onTap: onAdd,
           ),
         ],

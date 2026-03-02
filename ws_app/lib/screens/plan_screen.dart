@@ -7,6 +7,7 @@ import '../repositories/driver_repository.dart';
 import '../repositories/service_order_repository.dart';
 import '../services/data_filters.dart';
 import 'driver_home_screen.dart';
+import 'role_selection_screen.dart';
 import 'service_order_detail_screen.dart';
 
 class PlanScreen extends StatefulWidget {
@@ -14,8 +15,6 @@ class PlanScreen extends StatefulWidget {
   final DriverRepository driverRepo;
   final ClientRepository clientRepo;
 
-  // Se for Driver, passa driverId para filtrar.
-  // Se for Admin, pode passar null para ver tudo.
   final String? driverId;
   final bool isAdmin;
 
@@ -39,7 +38,6 @@ class _PlanScreenState extends State<PlanScreen> {
   void _refresh() => setState(() {});
 
   List<ServiceOrder> _getFilteredOrders() {
-    // ✅ Agora o Planejamento mostra TUDO: agendado + concluído + cancelado
     final all = widget.orderRepo.getAll();
 
     final filtered = widget.driverId == null
@@ -95,7 +93,26 @@ class _PlanScreenState extends State<PlanScreen> {
                       children: [
                         InkWell(
                           borderRadius: BorderRadius.circular(14),
-                          onTap: () => Navigator.pop(context),
+
+                          // ✅ CORREÇÃO DO VOLTAR (não depende de rota nomeada)
+                          onTap: () {
+                            final nav = Navigator.of(context);
+                            if (nav.canPop()) {
+                              nav.pop();
+                            } else {
+                              nav.pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (_) => RoleSelectionScreen(
+                                    clientRepo: widget.clientRepo,
+                                    driverRepo: widget.driverRepo,
+                                    orderRepo: widget.orderRepo,
+                                  ),
+                                ),
+                                (route) => false,
+                              );
+                            }
+                          },
+
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
@@ -105,9 +122,14 @@ class _PlanScreenState extends State<PlanScreen> {
                                 color: Colors.white.withOpacity(0.18),
                               ),
                             ),
-                            child: const Icon(
-                              Icons.arrow_back_rounded,
-                              color: Colors.white,
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_back_rounded,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 8),
+                              ],
                             ),
                           ),
                         ),
@@ -117,7 +139,7 @@ class _PlanScreenState extends State<PlanScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Today / Tomorrow',
+                                'Hoje / Amanhã',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -127,8 +149,8 @@ class _PlanScreenState extends State<PlanScreen> {
                               const SizedBox(height: 6),
                               Text(
                                 widget.isAdmin
-                                    ? 'Plan for all drivers'
-                                    : 'Your plan for today and tomorrow',
+                                    ? 'Plano para todos os motoristas'
+                                    : 'Seu plano para hoje e amanhã',
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
@@ -182,7 +204,7 @@ class _PlanScreenState extends State<PlanScreen> {
                   child: Column(
                     children: [
                       _Section(
-                        title: 'Today',
+                        title: 'Hoje',
                         orders: today,
                         driverRepo: widget.driverRepo,
                         clientRepo: widget.clientRepo,
@@ -192,7 +214,7 @@ class _PlanScreenState extends State<PlanScreen> {
                       ),
                       const SizedBox(height: 16),
                       _Section(
-                        title: 'Tomorrow',
+                        title: 'Amanhã',
                         orders: tomorrow,
                         driverRepo: widget.driverRepo,
                         clientRepo: widget.clientRepo,
@@ -240,8 +262,6 @@ class _Section extends StatelessWidget {
 
   Future<void> _cancelOrder(BuildContext context, ServiceOrder order) async {
     if (!isAdmin) return;
-
-    // ✅ Segurança: só cancela se estiver scheduled
     if (order.status != OrderStatus.scheduled) return;
 
     final confirmed = await showDialog<bool>(
@@ -300,7 +320,6 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Title bar
     final titleBar = Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -354,7 +373,6 @@ class _Section extends StatelessWidget {
       );
     }
 
-    // Group by driver (admin view). If not admin, still works (single driver).
     final grouped = <String, List<ServiceOrder>>{};
     for (final o in orders) {
       grouped.putIfAbsent(o.driverId, () => []).add(o);
@@ -418,8 +436,6 @@ class _Section extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-
-                // Orders list
                 ListView.separated(
                   itemCount: driverOrders.length,
                   shrinkWrap: true,
@@ -563,7 +579,7 @@ class _Section extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const Text(
-            'No orders',
+            'Nenhuma ordem',
             style: TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 16,
@@ -571,7 +587,7 @@ class _Section extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Nothing scheduled for this section.',
+            'Nada agendado para esta seção.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.black54),
           ),

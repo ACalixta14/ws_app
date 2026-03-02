@@ -42,7 +42,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
   }
 
   // =====================================================
-  // ✅ CSV HUMANO (SEU FORMATO)
+  // CSV HUMANO
   // =====================================================
   String buildOrdersCsv({
     required List<ServiceOrder> orders,
@@ -50,8 +50,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
     required DriverRepository driverRepo,
   }) {
     final buffer = StringBuffer();
-
-    buffer.writeln('Cliente,Data,Serviço,Motorista,Valor'); // já está em português
+    buffer.writeln('Cliente,Data,Serviço,Motorista,Valor');
 
     for (final o in orders) {
       final client = clientRepo.getById(o.clientId);
@@ -75,8 +74,6 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
 
     return buffer.toString();
   }
-
-  // =====================================================
 
   bool _matchesPeriod(ServiceOrder o) {
     if (_periodDays == null) return true;
@@ -122,7 +119,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
   }
 
   // =====================================================
-  // ✅ EXPORT CSV (BOTTOM SHEET)
+  // EXPORT CSV
   // =====================================================
   Future<void> _exportCsv() async {
     final orders = _getOrders();
@@ -150,7 +147,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                   children: [
                     const Expanded(
                       child: Text(
-                        'Export CSV (Human readable)',
+                        'Exportar CSV',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
@@ -185,13 +182,13 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.copy),
-                    label: const Text('Copy CSV'),
+                    label: const Text('Copiar CSV'),
                     onPressed: () async {
                       await Clipboard.setData(ClipboardData(text: csv));
                       if (!mounted) return;
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('CSV copied to clipboard')),
+                        const SnackBar(content: Text('CSV copiado!')),
                       );
                     },
                   ),
@@ -205,7 +202,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
   }
 
   // =====================================================
-  // UI: filters (opcional)
+  // UI: filtros
   // =====================================================
   void _clearFilters() {
     setState(() {
@@ -278,7 +275,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Orders History',
+                                'Histórico de Ordens',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -287,7 +284,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                               ),
                               SizedBox(height: 6),
                               Text(
-                                'Search, filter and export to CSV',
+                                'Busque, filtre e exporte para CSV',
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
@@ -332,10 +329,9 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                       children: [
                         const _SectionTitle(
                           icon: Icons.filter_alt_rounded,
-                          title: 'Filters',
+                          title: 'Filtros',
                         ),
                         const SizedBox(height: 12),
-
                         TextField(
                           controller: _searchCtrl,
                           onChanged: (v) => setState(() => _query = v),
@@ -345,9 +341,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             icon: Icons.search_rounded,
                           ),
                         ),
-
                         const SizedBox(height: 12),
-
                         Row(
                           children: [
                             Expanded(
@@ -360,7 +354,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                                 items: [
                                   const DropdownMenuItem<OrderStatus?>(
                                     value: null,
-                                    child: Text('All'),
+                                    child: Text('Todos'),
                                   ),
                                   ...OrderStatus.values.map(
                                     (s) => DropdownMenuItem<OrderStatus?>(
@@ -378,13 +372,13 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                               child: DropdownButtonFormField<String?>(
                                 value: _driverIdFilter,
                                 decoration: _ddDecoration(
-                                  label: 'Driver',
+                                  label: 'Motorista',
                                   icon: Icons.local_shipping_rounded,
                                 ),
                                 items: [
                                   const DropdownMenuItem<String?>(
                                     value: null,
-                                    child: Text('All'),
+                                    child: Text('Todos'),
                                   ),
                                   ...drivers.map(
                                     (d) => DropdownMenuItem<String?>(
@@ -399,44 +393,40 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 12),
-
                         DropdownButtonFormField<int?>(
                           value: _periodDays,
                           decoration: _ddDecoration(
-                            label: 'Period',
+                            label: 'Período',
                             icon: Icons.date_range_rounded,
                           ),
                           items: const [
                             DropdownMenuItem<int?>(
                               value: null,
-                              child: Text('All time'),
+                              child: Text('Todo período'),
                             ),
                             DropdownMenuItem<int?>(
                               value: 7,
-                              child: Text('Last 7 days'),
+                              child: Text('Últimos 7 dias'),
                             ),
                             DropdownMenuItem<int?>(
                               value: 30,
-                              child: Text('Last 30 days'),
+                              child: Text('Últimos 30 dias'),
                             ),
                             DropdownMenuItem<int?>(
                               value: 90,
-                              child: Text('Last 90 days'),
+                              child: Text('Últimos 90 dias'),
                             ),
                           ],
                           onChanged: (v) => setState(() => _periodDays = v),
                         ),
-
                         const SizedBox(height: 12),
-
                         Row(
                           children: [
                             Expanded(
                               child: _toolButton(
                                 icon: Icons.download_rounded,
-                                label: 'Export CSV',
+                                label: 'Exportar CSV',
                                 onTap: _exportCsv,
                               ),
                             ),
@@ -444,7 +434,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             Expanded(
                               child: _toolButton(
                                 icon: Icons.clear_all_rounded,
-                                label: 'Clear filters',
+                                label: 'Limpar filtros',
                                 onTap: _clearFilters,
                               ),
                             ),
@@ -491,7 +481,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                                   const Icon(Icons.history_rounded, color: brand),
                                   const SizedBox(width: 10),
                                   const Text(
-                                    'Results',
+                                    'Resultados',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w800,
@@ -518,18 +508,21 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                                   const SizedBox(height: 10),
                               itemBuilder: (_, i) {
                                 final o = orders[i];
-                                final client = widget.clientRepo.getById(o.clientId);
-                                final driver = widget.driverRepo.getById(o.driverId);
+                                final client =
+                                    widget.clientRepo.getById(o.clientId);
+                                final driver =
+                                    widget.driverRepo.getById(o.driverId);
 
                                 return _orderCard(
-                                  title: client?.name ?? 'Client',
+                                  title: client?.name ?? 'Cliente',
                                   subtitle:
                                       '${o.status.label} • ${o.serviceType.label} • ${driver?.name ?? ""}',
                                   onTap: () async {
                                     final changed = await Navigator.push<bool>(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => ServiceOrderDetailScreen(
+                                        builder: (_) =>
+                                            ServiceOrderDetailScreen(
                                           order: o,
                                           clientRepo: widget.clientRepo,
                                           driverRepo: widget.driverRepo,
@@ -708,7 +701,8 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: brand.withOpacity(0.14)),
               ),
-              child: const Icon(Icons.receipt_long_rounded, color: brand, size: 20),
+              child: const Icon(Icons.receipt_long_rounded,
+                  color: brand, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -773,7 +767,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
           ),
           const SizedBox(height: 10),
           const Text(
-            'No orders found',
+            'Nenhuma ordem encontrada',
             style: TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 16,
@@ -781,7 +775,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Try adjusting filters or search terms.',
+            'Tente ajustar os filtros ou termos de busca.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.black54),
           ),
