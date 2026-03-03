@@ -55,8 +55,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
 
   String? _phoneValidator(String? v) {
     final value = v?.trim() ?? '';
-    if (value.isEmpty) return 'Telefone é obrigatório';
-    if (value.length < 6) return 'Telefone parece muito curto';
+    if (value.isEmpty) return 'O campo Telefone é obrigatório';
+    if (value.length < 6) return 'O telefone parece muito curto';
     return null;
   }
 
@@ -71,7 +71,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     try {
       final now = DateTime.now();
 
-      // Sync before creating (same behavior you already had).
+      // Sincroniza antes de criar (mesmo comportamento)
       await SupabaseClientsSyncService(clientRepo: widget.clientRepo).trySync();
 
       final client = Client(
@@ -93,7 +93,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Save failed: $e')),
+        SnackBar(content: Text('Falha ao salvar: $e')),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -207,35 +207,35 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                         children: [
                           const _SectionTitle(
                             icon: Icons.badge_rounded,
-                            title: 'Client Details',
+                            title: 'Dados do cliente',
                           ),
                           const SizedBox(height: 12),
 
                           _field(
-                            label: 'Name *',
-                            hint: 'Client name',
+                            label: 'Nome *',
+                            hint: 'Nome do cliente',
                             controller: _nameCtrl,
                             textInputAction: TextInputAction.next,
-                            validator: (v) => _required(v, 'Name'),
+                            validator: (v) => _required(v, 'Nome'),
                             keyboardType: TextInputType.name,
                             icon: Icons.person_rounded,
                           ),
                           const SizedBox(height: 12),
 
                           _field(
-                            label: 'Address *',
-                            hint: 'Street, city…',
+                            label: 'Endereço *',
+                            hint: 'Rua, cidade…',
                             controller: _addressCtrl,
                             textInputAction: TextInputAction.next,
-                            validator: (v) => _required(v, 'Address'),
+                            validator: (v) => _required(v, 'Endereço'),
                             keyboardType: TextInputType.streetAddress,
                             icon: Icons.location_on_rounded,
                           ),
                           const SizedBox(height: 12),
 
                           _field(
-                            label: 'Phone *',
-                            hint: 'Contact phone',
+                            label: 'Telefone *',
+                            hint: 'Telefone de contato',
                             controller: _phoneCtrl,
                             textInputAction: TextInputAction.next,
                             validator: _phoneValidator,
@@ -245,8 +245,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                           const SizedBox(height: 12),
 
                           _field(
-                            label: 'Invoice details (optional)',
-                            hint: 'NIF, billing name, notes…',
+                            label: 'Dados para fatura (opcional)',
+                            hint: 'NIF, nome fiscal, observações…',
                             controller: _invoiceCtrl,
                             textInputAction: TextInputAction.done,
                             validator: (v) => null,
@@ -270,14 +270,14 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                   child: Column(
                     children: [
                       _primaryButton(
-                        label: _isSaving ? 'Saving…' : 'Save',
+                        label: _isSaving ? 'Salvando…' : 'Salvar',
                         icon: Icons.check_circle_outline_rounded,
                         enabled: _isValid && !_isSaving,
                         onTap: _save,
                       ),
                       const SizedBox(height: 10),
                       _secondaryButton(
-                        label: 'Cancel',
+                        label: 'Cancelar',
                         icon: Icons.close_rounded,
                         onTap: () => Navigator.pop(context),
                       ),
@@ -295,7 +295,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   }
 
   // =========================
-  // UI HELPERS (same "feel" as AdminHomeScreen)
+  // UI HELPERS
   // =========================
 
   static Widget _cardShell({required Widget child}) {

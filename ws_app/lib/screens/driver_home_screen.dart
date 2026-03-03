@@ -37,11 +37,11 @@ class DriverHomeScreen extends StatelessWidget {
             child: Column(
               children: [
                 // =========================
-                // HEADER
+                // HEADER (igual ao Admin)
                 // =========================
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [brand, brand2],
@@ -57,6 +57,7 @@ class DriverHomeScreen extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        // Botão voltar
                         InkWell(
                           borderRadius: BorderRadius.circular(14),
                           onTap: () {
@@ -72,7 +73,8 @@ class DriverHomeScreen extends StatelessWidget {
                             );
                           },
                           child: Container(
-                            padding: const EdgeInsets.all(10),
+                            width: 44,
+                            height: 44,
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.14),
                               borderRadius: BorderRadius.circular(14),
@@ -80,22 +82,34 @@ class DriverHomeScreen extends StatelessWidget {
                                 color: Colors.white.withOpacity(0.18),
                               ),
                             ),
-                            child: const Row(
-                              children: [
-                                Icon(
-                                  Icons.arrow_back_rounded,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(width: 8),
-                                // Text(
-                                //   //'Voltar',
-                                //   style: TextStyle(
-                                //     color: Colors.white,
-                                //     fontWeight: FontWeight.w700,
-                                //   ),
-                                // ),
-                              ],
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              color: Colors.white,
                             ),
+                          ),
+                        ),
+                        const SizedBox(width: 18),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Motorista',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                'Escolha seu nome para ver o plano de hoje e amanhã',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -150,7 +164,6 @@ class DriverHomeScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 12),
-
                             ListView.separated(
                               itemCount: drivers.length,
                               shrinkWrap: true,
@@ -162,7 +175,8 @@ class DriverHomeScreen extends StatelessWidget {
                                 return _driverCard(
                                   name: d.name,
                                   onTap: () {
-                                    Navigator.pushReplacement(
+                                    // ✅ push (não replacement) -> melhora o voltar no PlanScreen
+                                    Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => PlanScreen(
