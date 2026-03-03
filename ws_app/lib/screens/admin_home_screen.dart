@@ -8,6 +8,7 @@ import 'client_list_screen.dart';
 import 'create_service_order_screen.dart';
 import 'order_history_screen.dart';
 import 'plan_screen.dart';
+import 'role_selection_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   final ClientRepository clientRepo;
@@ -32,12 +33,12 @@ class AdminHomeScreen extends StatelessWidget {
       );
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Exportação pronta para compartilhar')),
+        const SnackBar(content: Text('Exportação pronta para compartilhar')),
       );
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Falha na exportação: $e')),
+        SnackBar(content: Text('Falha na exportação: $e')),
       );
     }
   }
@@ -54,12 +55,12 @@ class AdminHomeScreen extends StatelessWidget {
       await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
-            title: const Text('Resumo da importação'),
-            content: Text(
-              'Clientes importados: ${result.clientsImported}\n'
-              'Ordens importadas: ${result.ordersImported}\n'
-              'Ordens ignoradas (mais antigas): ${result.ordersSkippedOlder}',
-            ),
+          title: const Text('Resumo da importação'),
+          content: Text(
+            'Clientes importados: ${result.clientsImported}\n'
+            'Ordens importadas: ${result.ordersImported}\n'
+            'Ordens ignoradas (mais antigas): ${result.ordersSkippedOlder}',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -71,7 +72,7 @@ class AdminHomeScreen extends StatelessWidget {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Falha na importação: $e')),
+        SnackBar(content: Text('Falha na importação: $e')),
       );
     }
   }
@@ -80,18 +81,16 @@ class AdminHomeScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-          title: const Text('Limpar todos os dados de teste?'),
-          content: const Text('Isso irá apagar TODOS os clientes e ordens.'),
+        title: const Text('Limpar todos os dados de teste?'),
+        content: const Text('Isso irá apagar TODOS os clientes e ordens.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
-              // ...existing code...
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Clear'),
-              // ...existing code...
           ),
         ],
       ),
@@ -143,19 +142,55 @@ class AdminHomeScreen extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        // ✅ BOTÃO VOLTAR (para a tela de escolha - imagem 2)
+                        InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (_) => RoleSelectionScreen(
+                                  clientRepo: clientRepo,
+                                  driverRepo: driverRepo,
+                                  orderRepo: orderRepo,
+                                ),
+                              ),
+                              (route) => false,
+                            );
+                          },
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.14),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.18),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 14),
+
                         Image.asset(
                           'assets/images/logo.png',
                           width: 120,
                           height: 120,
                           fit: BoxFit.contain,
                         ),
+
                         const SizedBox(width: 18),
+
                         const Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                  'Administrador',
+                                'Administrador',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 22,
@@ -164,7 +199,7 @@ class AdminHomeScreen extends StatelessWidget {
                               ),
                               SizedBox(height: 6),
                               Text(
-                                  'Clientes, ordens, planejamento e sincronização',
+                                'Clientes, ordens, planejamento e sincronização',
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
@@ -195,8 +230,8 @@ class AdminHomeScreen extends StatelessWidget {
                     children: [
                       _card(
                         icon: Icons.people_alt_rounded,
-                          title: 'Clientes',
-                          subtitle: 'Gerenciar clientes',
+                        title: 'Clientes',
+                        subtitle: 'Gerenciar clientes',
                         onTap: () {
                           Navigator.push(
                             context,
@@ -210,8 +245,8 @@ class AdminHomeScreen extends StatelessWidget {
                       ),
                       _card(
                         icon: Icons.add_circle_outline_rounded,
-                          title: 'Criar Ordem',
-                          subtitle: 'Novo serviço',
+                        title: 'Criar Ordem',
+                        subtitle: 'Novo serviço',
                         onTap: () {
                           Navigator.push(
                             context,
@@ -227,8 +262,8 @@ class AdminHomeScreen extends StatelessWidget {
                       ),
                       _card(
                         icon: Icons.calendar_month_rounded,
-                          title: 'Planejamento',
-                          subtitle: 'Hoje / Amanhã',
+                        title: 'Planejamento',
+                        subtitle: 'Hoje / Amanhã',
                         onTap: () {
                           Navigator.push(
                             context,
@@ -246,8 +281,8 @@ class AdminHomeScreen extends StatelessWidget {
                       ),
                       _card(
                         icon: Icons.history_rounded,
-                          title: 'Histórico',
-                          subtitle: 'Ordens anteriores',
+                        title: 'Histórico',
+                        subtitle: 'Ordens anteriores',
                         onTap: () {
                           Navigator.push(
                             context,
@@ -296,14 +331,14 @@ class AdminHomeScreen extends StatelessWidget {
                           children: [
                             Icon(Icons.sync_rounded, color: brand),
                             SizedBox(width: 10),
-                              Text(
-                                'Sincronização & Ferramentas',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF111111),
-                                ),
+                            Text(
+                              'Sincronização & Ferramentas',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF111111),
                               ),
+                            ),
                           ],
                         ),
                       ),
@@ -313,7 +348,7 @@ class AdminHomeScreen extends StatelessWidget {
                           Expanded(
                             child: _toolButton(
                               icon: Icons.upload_file_rounded,
-                                label: 'Exportar JSON',
+                              label: 'Exportar JSON',
                               onTap: () => _exportSyncJson(context),
                             ),
                           ),
@@ -321,7 +356,7 @@ class AdminHomeScreen extends StatelessWidget {
                           Expanded(
                             child: _toolButton(
                               icon: Icons.download_rounded,
-                                label: 'Importar JSON',
+                              label: 'Importar JSON',
                               onTap: () => _importSyncJson(context),
                             ),
                           ),
@@ -330,7 +365,7 @@ class AdminHomeScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       _toolButton(
                         icon: Icons.delete_outline_rounded,
-                          label: 'Limpar dados de teste',
+                        label: 'Limpar dados de teste',
                         isDanger: true,
                         onTap: () => _clearAllData(context),
                       ),
@@ -401,7 +436,8 @@ class AdminHomeScreen extends StatelessWidget {
     required VoidCallback onTap,
     bool isDanger = false,
   }) {
-    final border = isDanger ? Colors.red.withOpacity(0.35) : brand.withOpacity(0.18);
+    final border =
+        isDanger ? Colors.red.withOpacity(0.35) : brand.withOpacity(0.18);
     final bg = isDanger ? Colors.red.withOpacity(0.06) : Colors.white;
 
     return InkWell(
