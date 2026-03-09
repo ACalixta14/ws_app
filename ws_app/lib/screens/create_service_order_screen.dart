@@ -66,7 +66,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       _priceCtrl.text = (p ?? 0).toStringAsFixed(0);
     }
     _recomputeCanSave();
-    // ...existing code...
   }
 
   void _recomputeCanSave() {
@@ -74,12 +73,11 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     final hasDriver = _driverId != null;
 
     final priceOk = _serviceType == ServiceType.miscellaneous
-      ? (_priceCtrl.text.trim().isNotEmpty &&
-        double.tryParse(_priceCtrl.text.trim()) != null)
-      : true;
+        ? (_priceCtrl.text.trim().isNotEmpty &&
+            double.tryParse(_priceCtrl.text.trim()) != null)
+        : true;
 
     final newValue = hasClient && hasDriver && priceOk && !_isSaving;
-    // ...existing code...
     if (newValue != _canSave) setState(() => _canSave = newValue);
   }
 
@@ -94,7 +92,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   }
 
   String? _requiredDropdown<T>(T? v, String label) {
-    if (v == null) return '$label is required';
+    if (v == null) return '$label é obrigatório';
     return null;
   }
 
@@ -102,17 +100,17 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     final text = v?.trim() ?? '';
 
     if (_serviceType == ServiceType.miscellaneous) {
-      if (text.isEmpty) return 'Price is required for Miscellaneous';
+      if (text.isEmpty) return 'O preço é obrigatório para Diversos';
       final parsed = double.tryParse(text);
-      if (parsed == null) return 'Price must be a number';
-      if (parsed <= 0) return 'Price must be greater than 0';
+      if (parsed == null) return 'O preço deve ser um número';
+      if (parsed <= 0) return 'O preço deve ser maior que 0';
       return null;
     }
 
     if (text.isEmpty) return null;
     final parsed = double.tryParse(text);
-    if (parsed == null) return 'Price must be a number';
-    if (parsed <= 0) return 'Price must be greater than 0';
+    if (parsed == null) return 'O preço deve ser um número';
+    if (parsed <= 0) return 'O preço deve ser maior que 0';
     return null;
   }
 
@@ -150,7 +148,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
     if (created == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Client saved')),
+        const SnackBar(content: Text('Cliente salvo')),
       );
       setState(() {});
     }
@@ -162,7 +160,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     final ok = _formKey.currentState?.validate() ?? false;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fix the errors before saving')),
+        const SnackBar(content: Text('Corrija os erros antes de salvar')),
       );
       return;
     }
@@ -170,7 +168,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     final client = widget.clientRepo.getById(_clientId!);
     if (client == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selected client not found')),
+        const SnackBar(content: Text('Cliente selecionado não encontrado')),
       );
       return;
     }
@@ -211,13 +209,13 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order saved')),
+        const SnackBar(content: Text('Ordem salva')),
       );
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Erro: $e')),
       );
     } finally {
       if (mounted) {
@@ -242,9 +240,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     final drivers = widget.driverRepo.getAll();
     const double maxContentWidth = 520;
 
-    // =========================
-    // EMPTY STATE (no clients)
-    // =========================
     if (clients.isEmpty) {
       return Scaffold(
         backgroundColor: const Color(0xFFF6F7F8),
@@ -296,9 +291,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       );
     }
 
-    // =========================
-    // FORM
-    // =========================
     final misc = _serviceType == ServiceType.miscellaneous;
 
     return Scaffold(
@@ -313,8 +305,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
               children: [
                 _header(
                   context,
-                  title: 'Create Order',
-                  subtitle: 'Pick client, driver, date and details',
+                  title: 'Criar Ordem',
+                  subtitle: 'Escolha cliente, motorista, data e detalhes',
                   trailing: InkWell(
                     borderRadius: BorderRadius.circular(14),
                     onTap: _canSave ? _save : null,
@@ -345,15 +337,14 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                         children: [
                           const _SectionTitle(
                             icon: Icons.assignment_rounded,
-                            title: 'Order Details',
+                            title: 'Detalhes da Ordem',
                           ),
                           const SizedBox(height: 12),
 
-                          // Client
                           DropdownButtonFormField<String>(
                             value: _clientId,
                             decoration: _ddDecoration(
-                              label: 'Client *',
+                              label: 'Cliente *',
                               icon: Icons.people_alt_rounded,
                             ),
                             items: clients
@@ -364,7 +355,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                                   ),
                                 )
                                 .toList(),
-                            validator: (v) => _requiredDropdown(v, 'Client'),
+                            validator: (v) => _requiredDropdown(v, 'Cliente'),
                             onChanged: (v) {
                               setState(() => _clientId = v);
                               _recomputeCanSave();
@@ -373,11 +364,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Driver
                           DropdownButtonFormField<String>(
                             value: _driverId,
                             decoration: _ddDecoration(
-                              label: 'Driver *',
+                              label: 'Motorista *',
                               icon: Icons.local_shipping_rounded,
                             ),
                             items: drivers
@@ -388,7 +378,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                                   ),
                                 )
                                 .toList(),
-                            validator: (v) => _requiredDropdown(v, 'Driver'),
+                            validator: (v) => _requiredDropdown(v, 'Motorista'),
                             onChanged: (v) {
                               setState(() => _driverId = v);
                               _recomputeCanSave();
@@ -397,12 +387,11 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Date / Time row
                           Row(
                             children: [
                               Expanded(
                                 child: _pickerTile(
-                                  title: 'Date *',
+                                  title: 'Data *',
                                   subtitle: _fmtDate(_date),
                                   icon: Icons.calendar_today_rounded,
                                   onTap: _pickDate,
@@ -411,7 +400,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _pickerTile(
-                                  title: 'Time *',
+                                  title: 'Hora *',
                                   subtitle: _time.format(context),
                                   icon: Icons.schedule_rounded,
                                   onTap: _pickTime,
@@ -422,11 +411,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Service Type
                           DropdownButtonFormField<ServiceType>(
                             value: _serviceType,
                             decoration: _ddDecoration(
-                              label: 'Service type *',
+                              label: 'Tipo de serviço *',
                               icon: Icons.handyman_rounded,
                             ),
                             items: ServiceType.values
@@ -446,11 +434,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Payment method
                           DropdownButtonFormField<PaymentMethod>(
                             value: _paymentMethod,
                             decoration: _ddDecoration(
-                              label: 'Payment method *',
+                              label: 'Método de pagamento *',
                               icon: Icons.payments_rounded,
                             ),
                             items: PaymentMethod.values
@@ -469,19 +456,18 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Price
                           TextFormField(
                             controller: _priceCtrl,
                             keyboardType: TextInputType.number,
                             decoration: _fieldDecoration(
-                              label: 'Price (€) ${misc ? "*" : ""}',
+                              label: 'Preço (€) ${misc ? "*" : ""}',
                               hint: misc
-                                  ? 'Enter a custom price'
-                                  : 'Default applied (you can override)',
+                                  ? 'Digite um preço personalizado'
+                                  : 'Valor padrão aplicado (você pode alterar)',
                               icon: Icons.euro_rounded,
                               helperText: misc
-                                  ? 'Required for Miscellaneous'
-                                  : 'Optional — auto-filled by service type',
+                                  ? 'Obrigatório para Diversos'
+                                  : 'Opcional — preenchido automaticamente pelo tipo de serviço',
                             ),
                             validator: _priceValidator,
                             onChanged: (_) => _recomputeCanSave(),
@@ -489,13 +475,12 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Notes
                           TextFormField(
                             controller: _notesCtrl,
                             maxLines: 3,
                             decoration: _fieldDecoration(
-                              label: 'Notes (optional)',
-                              hint: 'Extra info for the driver…',
+                              label: 'Observações (opcional)',
+                              hint: 'Informações extras para o motorista…',
                               icon: Icons.notes_rounded,
                             ),
                           ),
@@ -507,20 +492,19 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
                 const SizedBox(height: 14),
 
-                // ACTIONS
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
                       _primaryButton(
-                        label: _isSaving ? 'Saving…' : 'Save order',
+                        label: _isSaving ? 'Salvando…' : 'Salvar ordem',
                         icon: Icons.check_circle_outline_rounded,
                         enabled: _canSave && !_isSaving,
                         onTap: _save,
                       ),
                       const SizedBox(height: 10),
                       _secondaryButton(
-                        label: 'Cancel',
+                        label: 'Cancelar',
                         icon: Icons.close_rounded,
                         onTap: () => Navigator.pop(context),
                       ),
@@ -537,9 +521,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     );
   }
 
-  // =========================
-  // HEADER
-  // =========================
   static Widget _header(
     BuildContext context, {
     required String title,
@@ -608,9 +589,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     );
   }
 
-  // =========================
-  // UI HELPERS
-  // =========================
   static Widget _cardShell({required Widget child}) {
     return Container(
       width: double.infinity,

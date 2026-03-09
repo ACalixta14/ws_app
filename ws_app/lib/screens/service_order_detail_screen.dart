@@ -132,18 +132,18 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Cancel order?'),
+        title: const Text('Cancelar ordem?'),
         content: const Text(
-          'This order will be kept in history but removed from the plan.',
+          'Esta ordem será mantida no histórico, mas removida do planejamento.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Back'),
+            child: const Text('Voltar'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Cancel order'),
+            child: const Text('Cancelar ordem'),
           ),
         ],
       ),
@@ -162,7 +162,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       await widget.orderRepo.update(updated);
       _reloadFromRepo();
 
-      // keep your sync call (but after update so it pushes latest state)
       await SupabaseOrdersSyncService(orderRepo: widget.orderRepo).trySync();
 
       if (!mounted) return;
@@ -263,7 +262,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Order detail',
+                                'Detalhe da ordem',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -300,7 +299,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                 const SizedBox(height: 16),
 
                 // =========================
-                // CLIENT / ORDER SUMMARY
+                // CLIENTE / RESUMO DA ORDEM
                 // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -310,22 +309,31 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       children: [
                         const _SectionTitle(
                           icon: Icons.badge_rounded,
-                          title: 'Summary',
+                          title: 'Resumo',
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          client?.name ?? 'Client',
+                          client?.name ?? 'Cliente',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        _InfoRow(label: 'Driver', value: driver?.name ?? 'Unknown'),
-                        _InfoRow(label: 'Service', value: _order.serviceType.label),
-                        _InfoRow(label: 'Payment', value: _order.paymentMethod.label),
                         _InfoRow(
-                          label: 'Price',
+                          label: 'Motorista',
+                          value: driver?.name ?? 'Motorista',
+                        ),
+                        _InfoRow(
+                          label: 'Serviço',
+                          value: _order.serviceType.label,
+                        ),
+                        _InfoRow(
+                          label: 'Pagamento',
+                          value: _order.paymentMethod.label,
+                        ),
+                        _InfoRow(
+                          label: 'Preço',
                           value: '€${_order.price.toStringAsFixed(0)}',
                         ),
                       ],
@@ -336,7 +344,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                 const SizedBox(height: 14),
 
                 // =========================
-                // ADDRESS
+                // ENDEREÇO
                 // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -346,15 +354,16 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       children: [
                         const _SectionTitle(
                           icon: Icons.location_on_rounded,
-                          title: 'Address',
+                          title: 'Endereço',
                         ),
                         const SizedBox(height: 10),
                         SelectableText(_order.addressSnapshot),
                         const SizedBox(height: 12),
                         _toolButton(
                           icon: Icons.copy_rounded,
-                          label: 'Copy address',
-                          onTap: () => _copy(_order.addressSnapshot, 'Address copied'),
+                          label: 'Copiar endereço',
+                          onTap: () =>
+                              _copy(_order.addressSnapshot, 'Endereço copiado'),
                         ),
                       ],
                     ),
@@ -364,7 +373,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                 const SizedBox(height: 14),
 
                 // =========================
-                // PHONE
+                // TELEFONE
                 // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -374,15 +383,16 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       children: [
                         const _SectionTitle(
                           icon: Icons.phone_rounded,
-                          title: 'Phone',
+                          title: 'Telefone',
                         ),
                         const SizedBox(height: 10),
                         SelectableText(_order.phoneSnapshot),
                         const SizedBox(height: 12),
                         _toolButton(
                           icon: Icons.copy_rounded,
-                          label: 'Copy phone',
-                          onTap: () => _copy(_order.phoneSnapshot, 'Phone copied'),
+                          label: 'Copiar telefone',
+                          onTap: () =>
+                              _copy(_order.phoneSnapshot, 'Telefone copiado'),
                         ),
                       ],
                     ),
@@ -392,7 +402,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                 const SizedBox(height: 14),
 
                 // =========================
-                // NOTES
+                // OBSERVAÇÕES
                 // =========================
                 if ((_order.notes ?? '').trim().isNotEmpty)
                   Padding(
@@ -403,7 +413,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         children: [
                           const _SectionTitle(
                             icon: Icons.notes_rounded,
-                            title: 'Admin notes',
+                            title: 'Observações do administrador',
                           ),
                           const SizedBox(height: 10),
                           Text((_order.notes ?? '').trim()),
@@ -416,7 +426,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                   const SizedBox(height: 14),
 
                 // =========================
-                // DISPOSAL NOTE
+                // NOTA DE DESCARTE
                 // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -426,7 +436,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       children: [
                         const _SectionTitle(
                           icon: Icons.delete_outline_rounded,
-                          title: 'Disposal note (driver)',
+                          title: 'Nota de descarte (motorista)',
                         ),
                         const SizedBox(height: 10),
                         TextField(
@@ -434,15 +444,17 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           minLines: 2,
                           maxLines: 5,
                           decoration: _fieldDecoration(
-                            label: 'Where was it dumped?',
-                            hint: 'Write the location / instructions…',
+                            label: 'Onde foi descartado?',
+                            hint: 'Escreva o local / instruções…',
                             icon: Icons.edit_note_rounded,
                           ),
                         ),
                         const SizedBox(height: 12),
                         _toolButton(
                           icon: Icons.save_rounded,
-                          label: _isSavingDisposal ? 'Saving…' : 'Save disposal note',
+                          label: _isSavingDisposal
+                              ? 'Salvando…'
+                              : 'Salvar nota de descarte',
                           onTap: _isSavingDisposal ? () {} : _saveDisposalNote,
                         ),
                       ],
@@ -453,7 +465,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                 const SizedBox(height: 14),
 
                 // =========================
-                // ACTIONS
+                // AÇÕES
                 // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -471,7 +483,9 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       if (widget.isAdmin && _order.status == OrderStatus.scheduled)
                         _toolButton(
                           icon: Icons.cancel_rounded,
-                          label: _isCanceling ? 'Canceling…' : 'Cancel order',
+                          label: _isCanceling
+                              ? 'Cancelando…'
+                              : 'Cancelar ordem',
                           isDanger: true,
                           onTap: _isCanceling ? () {} : _cancelOrder,
                         ),
@@ -479,7 +493,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         const SizedBox(height: 10),
                       if (widget.isAdmin)
                         _secondaryButton(
-                          label: 'Edit',
+                          label: 'Editar',
                           icon: Icons.edit_rounded,
                           onTap: _editOrder,
                         ),
@@ -490,7 +504,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                 const SizedBox(height: 14),
 
                 // =========================
-                // META
+                // METADADOS
                 // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -500,15 +514,15 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       children: [
                         const _SectionTitle(
                           icon: Icons.info_outline_rounded,
-                          title: 'Meta',
+                          title: 'Metadados',
                         ),
                         const SizedBox(height: 10),
                         _InfoRow(
-                          label: 'Created',
+                          label: 'Criado em',
                           value: _fmtShortDateTime(_order.createdAt),
                         ),
                         _InfoRow(
-                          label: 'Updated',
+                          label: 'Atualizado em',
                           value: _fmtShortDateTime(_order.updatedAt),
                         ),
                       ],
@@ -570,7 +584,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: brand, width: 1.3),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     );
   }
 

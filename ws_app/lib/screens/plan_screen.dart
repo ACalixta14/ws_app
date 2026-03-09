@@ -93,8 +93,6 @@ class _PlanScreenState extends State<PlanScreen> {
                       children: [
                         InkWell(
                           borderRadius: BorderRadius.circular(14),
-
-                          // ✅ CORREÇÃO DO VOLTAR (não depende de rota nomeada)
                           onTap: () {
                             final nav = Navigator.of(context);
                             if (nav.canPop()) {
@@ -112,7 +110,6 @@ class _PlanScreenState extends State<PlanScreen> {
                               );
                             }
                           },
-
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
@@ -197,7 +194,7 @@ class _PlanScreenState extends State<PlanScreen> {
                 const SizedBox(height: 16),
 
                 // =========================
-                // SECTIONS
+                // SEÇÕES
                 // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -267,18 +264,18 @@ class _Section extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Cancel order?'),
+        title: const Text('Cancelar ordem?'),
         content: const Text(
-          'The order will be kept in history but removed from the plan.',
+          'A ordem será mantida no histórico, mas removida do planejamento.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Back'),
+            child: const Text('Voltar'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Cancel order'),
+            child: const Text('Cancelar ordem'),
           ),
         ],
       ),
@@ -295,7 +292,7 @@ class _Section extends StatelessWidget {
 
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Order canceled')),
+      const SnackBar(content: Text('Ordem cancelada')),
     );
 
     onChanged();
@@ -338,7 +335,9 @@ class _Section extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            title == 'Today' ? Icons.today_rounded : Icons.calendar_month_rounded,
+            title == 'Hoje'
+                ? Icons.today_rounded
+                : Icons.calendar_month_rounded,
             color: brand,
           ),
           const SizedBox(width: 10),
@@ -385,7 +384,7 @@ class _Section extends StatelessWidget {
         const SizedBox(height: 12),
         ...grouped.entries.map((entry) {
           final driver = driverRepo.getById(entry.key);
-          final driverName = driver?.name ?? 'Unknown';
+          final driverName = driver?.name ?? 'Motorista';
 
           final driverOrders = entry.value.toList()
             ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
@@ -444,7 +443,7 @@ class _Section extends StatelessWidget {
                   itemBuilder: (_, idx) {
                     final order = driverOrders[idx];
                     final client = clientRepo.getById(order.clientId);
-                    final clientName = client?.name ?? 'Client';
+                    final clientName = client?.name ?? 'Cliente';
 
                     final hh =
                         order.scheduledAt.hour.toString().padLeft(2, '0');

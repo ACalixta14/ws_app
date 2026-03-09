@@ -89,10 +89,10 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
 
   String? _priceValidator(String? v) {
     final text = v?.trim() ?? '';
-    if (text.isEmpty) return 'Price is required';
+    if (text.isEmpty) return 'O preço é obrigatório';
     final parsed = double.tryParse(text);
-    if (parsed == null) return 'Price must be a number';
-    if (parsed <= 0) return 'Price must be greater than 0';
+    if (parsed == null) return 'O preço deve ser um número';
+    if (parsed <= 0) return 'O preço deve ser maior que 0';
     return null;
   }
 
@@ -120,7 +120,7 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
     final ok = _formKey.currentState?.validate() ?? false;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fix the errors before saving')),
+        const SnackBar(content: Text('Corrija os erros antes de salvar')),
       );
       return;
     }
@@ -139,20 +139,19 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
         price: double.parse(_priceCtrl.text.trim()),
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
         updatedAt: DateTime.now(),
-        // keep status as-is
       );
 
       await widget.orderRepo.update(updated);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order updated')),
+        const SnackBar(content: Text('Ordem atualizada')),
       );
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Erro: $e')),
       );
     } finally {
       if (mounted) {
@@ -168,18 +167,18 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Cancel order?'),
+        title: const Text('Cancelar ordem?'),
         content: const Text(
-          'This order will be kept in history but removed from the plan.',
+          'Esta ordem será mantida no histórico, mas removida do planejamento.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Back'),
+            child: const Text('Voltar'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Cancel order'),
+            child: const Text('Cancelar ordem'),
           ),
         ],
       ),
@@ -202,13 +201,13 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order canceled')),
+        const SnackBar(content: Text('Ordem cancelada')),
       );
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Erro: $e')),
       );
     } finally {
       if (mounted) {
@@ -247,8 +246,8 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
                 // =========================
                 _header(
                   context,
-                  title: 'Edit Order',
-                  subtitle: 'Update driver, schedule and details',
+                  title: 'Editar Ordem',
+                  subtitle: 'Atualize motorista, horário e detalhes',
                   trailing: InkWell(
                     borderRadius: BorderRadius.circular(14),
                     onTap: _canSave ? _save : null,
@@ -282,15 +281,14 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
                         children: [
                           const _SectionTitle(
                             icon: Icons.edit_rounded,
-                            title: 'Order Details',
+                            title: 'Detalhes da Ordem',
                           ),
                           const SizedBox(height: 12),
 
-                          // Driver
                           DropdownButtonFormField<String>(
                             value: _driverId,
                             decoration: _ddDecoration(
-                              label: 'Driver *',
+                              label: 'Motorista *',
                               icon: Icons.local_shipping_rounded,
                             ),
                             items: drivers
@@ -306,12 +304,11 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
                           ),
                           const SizedBox(height: 12),
 
-                          // Date/Time
                           Row(
                             children: [
                               Expanded(
                                 child: _pickerTile(
-                                  title: 'Date',
+                                  title: 'Data',
                                   subtitle: _fmtDate(_date),
                                   icon: Icons.calendar_today_rounded,
                                   onTap: _pickDate,
@@ -320,7 +317,7 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _pickerTile(
-                                  title: 'Time',
+                                  title: 'Hora',
                                   subtitle: _time.format(context),
                                   icon: Icons.schedule_rounded,
                                   onTap: _pickTime,
@@ -331,11 +328,10 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Service type
                           DropdownButtonFormField<ServiceType>(
                             value: _serviceType,
                             decoration: _ddDecoration(
-                              label: 'Service type',
+                              label: 'Tipo de serviço',
                               icon: Icons.handyman_rounded,
                             ),
                             items: ServiceType.values
@@ -353,11 +349,10 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Payment
                           DropdownButtonFormField<PaymentMethod>(
                             value: _paymentMethod,
                             decoration: _ddDecoration(
-                              label: 'Payment method',
+                              label: 'Método de pagamento',
                               icon: Icons.payments_rounded,
                             ),
                             items: PaymentMethod.values
@@ -375,13 +370,12 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Price
                           TextFormField(
                             controller: _priceCtrl,
                             keyboardType: TextInputType.number,
                             decoration: _fieldDecoration(
-                              label: 'Price (€) *',
-                              hint: 'Enter the final price',
+                              label: 'Preço (€) *',
+                              hint: 'Digite o preço final',
                               icon: Icons.euro_rounded,
                             ),
                             validator: _priceValidator,
@@ -389,13 +383,12 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
 
                           const SizedBox(height: 12),
 
-                          // Notes
                           TextFormField(
                             controller: _notesCtrl,
                             maxLines: 3,
                             decoration: _fieldDecoration(
-                              label: 'Notes (optional)',
-                              hint: 'Extra info…',
+                              label: 'Observações (opcional)',
+                              hint: 'Informações extras…',
                               icon: Icons.notes_rounded,
                             ),
                           ),
@@ -415,7 +408,7 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
                   child: Column(
                     children: [
                       _primaryButton(
-                        label: _isSaving ? 'Saving…' : 'Save changes',
+                        label: _isSaving ? 'Salvando…' : 'Salvar alterações',
                         icon: Icons.check_circle_outline_rounded,
                         enabled: _canSave && !_isSaving,
                         onTap: _save,
@@ -423,13 +416,13 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
                       const SizedBox(height: 10),
                       _toolButton(
                         icon: Icons.block_rounded,
-                        label: 'Cancel order',
+                        label: 'Cancelar ordem',
                         isDanger: true,
                         onTap: _cancel,
                       ),
                       const SizedBox(height: 10),
                       _secondaryButton(
-                        label: 'Back',
+                        label: 'Voltar',
                         icon: Icons.arrow_back_rounded,
                         onTap: () => Navigator.pop(context),
                       ),
@@ -446,9 +439,6 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
     );
   }
 
-  // =========================
-  // HEADER
-  // =========================
   static Widget _header(
     BuildContext context, {
     required String title,
@@ -515,9 +505,6 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
     );
   }
 
-  // =========================
-  // UI HELPERS
-  // =========================
   static Widget _cardShell({required Widget child}) {
     return Container(
       width: double.infinity,
