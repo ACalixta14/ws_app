@@ -1,5 +1,5 @@
 enum PaymentMethod {
-  bankTransfer('Bank transfer'),
+  bankTransfer('Transferênciafl'),
   mbWay('MB Way'),
   cash('Cash');
 

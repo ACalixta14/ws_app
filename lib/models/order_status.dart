@@ -8,11 +8,11 @@ extension OrderStatusLabel on OrderStatus {
   String get label {
     switch (this) {
       case OrderStatus.scheduled:
-        return 'Scheduled';
+        return 'Agendado';
       case OrderStatus.done:
-        return 'Done';
+        return 'Feito';
       case OrderStatus.canceled:
-        return 'Canceled';
+        return 'Cancelado';
     }
   }
 }

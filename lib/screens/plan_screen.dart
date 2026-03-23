@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/order_status.dart';
 import '../models/service_order.dart';
@@ -6,6 +7,7 @@ import '../repositories/client_repository.dart';
 import '../repositories/driver_repository.dart';
 import '../repositories/service_order_repository.dart';
 import '../services/data_filters.dart';
+import '../services/supabase_orders_sync_service.dart';
 import 'driver_home_screen.dart';
 import 'role_selection_screen.dart';
 import 'service_order_detail_screen.dart';
@@ -32,10 +34,36 @@ class PlanScreen extends StatefulWidget {
 }
 
 class _PlanScreenState extends State<PlanScreen> {
+  int _lastOrderCount = 0;
+
   static const Color brand = Color(0xFF044950);
   static const Color brand2 = Color(0xFF0A6C74);
 
   void _refresh() => setState(() {});
+
+  void _checkForNewOrders(int currentCount) {
+    if (_lastOrderCount == 0) {
+      _lastOrderCount = currentCount;
+      return;
+    }
+
+    if (currentCount > _lastOrderCount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+
+        HapticFeedback.mediumImpact();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Plano atualizado'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      });
+    }
+
+    _lastOrderCount = currentCount;
+  }
 
   List<ServiceOrder> _getFilteredOrders() {
     final all = widget.orderRepo.getAll();
@@ -55,6 +83,9 @@ class _PlanScreenState extends State<PlanScreen> {
     final today = filteredOrders.where(isToday).toList();
     final tomorrow = filteredOrders.where(isTomorrow).toList();
 
+    final currentCount = filteredOrders.length;
+    _checkForNewOrders(currentCount);
+
     today.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     tomorrow.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
 
@@ -70,9 +101,6 @@ class _PlanScreenState extends State<PlanScreen> {
             constraints: const BoxConstraints(maxWidth: maxContentWidth),
             child: Column(
               children: [
-                // =========================
-                // HEADER
-                // =========================
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
@@ -135,9 +163,9 @@ class _PlanScreenState extends State<PlanScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Hoje / Amanhã',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
                                   fontWeight: FontWeight.w800,
@@ -190,12 +218,7 @@ class _PlanScreenState extends State<PlanScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // =========================
-                // SEÇÕES
-                // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
@@ -222,7 +245,6 @@ class _PlanScreenState extends State<PlanScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 10),
               ],
             ),
@@ -290,7 +312,12 @@ class _Section extends StatelessWidget {
 
     await orderRepo.update(updated);
 
+    await SupabaseOrdersSyncService(
+      orderRepo: orderRepo,
+    ).trySync();
+
     if (!context.mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Ordem cancelada')),
     );
@@ -305,7 +332,9 @@ class _Section extends StatelessWidget {
   }
 
   TextDecoration _statusDecoration(ServiceOrder order) {
-    if (order.status == OrderStatus.canceled) return TextDecoration.lineThrough;
+    if (order.status == OrderStatus.canceled) {
+      return TextDecoration.lineThrough;
+    }
     return TextDecoration.none;
   }
 
@@ -470,10 +499,10 @@ class _Section extends StatelessWidget {
                         );
                         if (changed == true) onChanged();
                       },
-                      onLongPress: isAdmin &&
-                              order.status == OrderStatus.scheduled
-                          ? () => _cancelOrder(context, order)
-                          : null,
+                      onLongPress:
+                          isAdmin && order.status == OrderStatus.scheduled
+                              ? () => _cancelOrder(context, order)
+                              : null,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -516,16 +545,29 @@ class _Section extends StatelessWidget {
                                       fontWeight: FontWeight.w900,
                                       fontSize: 13,
                                       decoration: _statusDecoration(order),
-                                      color: statusColor ??
+                                      color:
+                                          statusColor ??
                                           const Color(0xFF111111),
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${order.serviceType.label} • €${order.price.toStringAsFixed(0)} • ${order.status.label}',
+                                    order.additionalStops.isNotEmpty
+                                        ? '${order.serviceType.label} • ${order.additionalStops.length} paragem(ns) • ${order.status.label}'
+                                        : '${order.serviceType.label} • ${order.status.label}',
                                     style: const TextStyle(
                                       color: Colors.black54,
                                       fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    order.serviceAddress,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.black45,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ],

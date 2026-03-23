@@ -6,6 +6,7 @@ import '../models/service_order.dart';
 import '../models/service_type.dart';
 import '../repositories/driver_repository.dart';
 import '../repositories/service_order_repository.dart';
+import '../services/supabase_orders_sync_service.dart';
 
 class EditServiceOrderScreen extends StatefulWidget {
   final ServiceOrder order;
@@ -140,14 +141,18 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
         updatedAt: DateTime.now(),
       );
+await widget.orderRepo.update(updated);
 
-      await widget.orderRepo.update(updated);
+await SupabaseOrdersSyncService(
+  orderRepo: widget.orderRepo,
+).trySync();
 
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ordem atualizada')),
-      );
-      Navigator.pop(context, true);
+if (!mounted) return;
+ScaffoldMessenger.of(context).showSnackBar(
+  const SnackBar(content: Text('Ordem atualizada')),
+);
+Navigator.pop(context, true);
+
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -197,13 +202,18 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
         updatedAt: DateTime.now(),
       );
 
-      await widget.orderRepo.update(updated);
+    await widget.orderRepo.update(updated);
 
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ordem cancelada')),
-      );
-      Navigator.pop(context, true);
+await SupabaseOrdersSyncService(
+  orderRepo: widget.orderRepo,
+).trySync();
+
+if (!mounted) return;
+ScaffoldMessenger.of(context).showSnackBar(
+  const SnackBar(content: Text('Ordem cancelada')),
+);
+Navigator.pop(context, true);
+
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

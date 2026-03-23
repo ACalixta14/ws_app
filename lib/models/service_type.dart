@@ -1,10 +1,10 @@
 enum ServiceType {
-  hauling('Hauling'),
-  wood('Wood'),
-  clean('Clean'),
-  mixed('Mixed'),
-  drywall('Drywall'),
-  miscellaneous('Misc');
+  hauling('Transporte'),
+  wood('Madeira'),
+  clean('Limpo'),
+  mixed('Misto'),
+  drywall('Pladur'),
+  miscellaneous('Diversos');
 
   final String label;
 

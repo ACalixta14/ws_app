@@ -45,11 +45,15 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         _addressCtrl.text.trim().isNotEmpty &&
         _phoneCtrl.text.trim().isNotEmpty;
 
-    if (valid != _isValid) setState(() => _isValid = valid);
+    if (valid != _isValid) {
+      setState(() => _isValid = valid);
+    }
   }
 
   String? _required(String? v, String label) {
-    if (v == null || v.trim().isEmpty) return 'O campo $label é obrigatório';
+    if (v == null || v.trim().isEmpty) {
+      return 'O campo $label é obrigatório';
+    }
     return null;
   }
 
@@ -71,9 +75,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     try {
       final now = DateTime.now();
 
-      // Sincroniza antes de criar (mesmo comportamento)
-      await SupabaseClientsSyncService(clientRepo: widget.clientRepo).trySync();
-
       final client = Client(
         id: newId(),
         name: _nameCtrl.text.trim(),
@@ -86,7 +87,13 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         updatedAt: now,
       );
 
+      // 1) salva primeiro no Hive
       await widget.clientRepo.add(client);
+
+      // 2) depois sincroniza
+      await SupabaseClientsSyncService(
+        clientRepo: widget.clientRepo,
+      ).trySync();
 
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -123,9 +130,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             constraints: const BoxConstraints(maxWidth: maxContentWidth),
             child: Column(
               children: [
-                // =========================
-                // HEADER
-                // =========================
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
@@ -190,12 +194,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // =========================
-                // FORM CARD
-                // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _cardShell(
@@ -210,7 +209,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                             title: 'Dados do cliente',
                           ),
                           const SizedBox(height: 12),
-
                           _field(
                             label: 'Nome *',
                             hint: 'Nome do cliente',
@@ -221,7 +219,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                             icon: Icons.person_rounded,
                           ),
                           const SizedBox(height: 12),
-
                           _field(
                             label: 'Endereço *',
                             hint: 'Rua, cidade…',
@@ -232,7 +229,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                             icon: Icons.location_on_rounded,
                           ),
                           const SizedBox(height: 12),
-
                           _field(
                             label: 'Telefone *',
                             hint: 'Telefone de contato',
@@ -243,7 +239,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                             icon: Icons.phone_rounded,
                           ),
                           const SizedBox(height: 12),
-
                           _field(
                             label: 'Dados para fatura (opcional)',
                             hint: 'NIF, nome fiscal, observações…',
@@ -259,12 +254,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
-                // =========================
-                // ACTIONS
-                // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
@@ -284,7 +274,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 10),
               ],
             ),
@@ -293,10 +282,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       ),
     );
   }
-
-  // =========================
-  // UI HELPERS
-  // =========================
 
   static Widget _cardShell({required Widget child}) {
     return Container(
@@ -351,7 +336,10 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: brand, width: 1.3),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
       ),
     );
   }

@@ -43,19 +43,39 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   ServiceType _serviceType = ServiceType.hauling;
   PaymentMethod _paymentMethod = PaymentMethod.cash;
 
+//cria uma "caixinha de texto controlada"
   final _priceCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
+  final _serviceAdressCtrl = TextEditingController();
+//cada paragem vai ter sua própria caixa de texto||Essa lista guarda todas elas
+  final List<TextEditingController>_stopCtrls = [];
 
   bool _canSave = false;
   bool _isSaving = false;
 
+//ao digitar a morada, o botão e a validação serão recalculados.
   @override
   void initState() {
     super.initState();
     _syncPriceWithServiceType();
     _priceCtrl.addListener(_recomputeCanSave);
     _notesCtrl.addListener(_recomputeCanSave);
+    _serviceAdressCtrl.addListener(_recomputeCanSave);
     _recomputeCanSave();
+  }
+
+//cria uma nova paragem
+  void _addStop() {
+    setState(() {
+      _stopCtrls.add(TextEditingController());
+    });
+  }
+//remove uma paragem específica
+  void _removeStop(int index){
+    setState(() {
+      _stopCtrls[index].dispose();
+      _stopCtrls.removeAt(index);
+    });
   }
 
   void _syncPriceWithServiceType() {
@@ -68,16 +88,20 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     _recomputeCanSave();
   }
 
+//Botão só salva a ordem se tiver essas condições
   void _recomputeCanSave() {
     final hasClient = _clientId != null;
     final hasDriver = _driverId != null;
+    final hasServiceAddress = _serviceAdressCtrl.text.trim().isNotEmpty;
 
     final priceOk = _serviceType == ServiceType.miscellaneous
         ? (_priceCtrl.text.trim().isNotEmpty &&
             double.tryParse(_priceCtrl.text.trim()) != null)
         : true;
 
-    final newValue = hasClient && hasDriver && priceOk && !_isSaving;
+    final newValue = 
+      hasClient && hasDriver && hasServiceAddress && priceOk && !_isSaving;
+
     if (newValue != _canSave) setState(() => _canSave = newValue);
   }
 
@@ -185,6 +209,13 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     });
 
     try {
+      
+//transforma os campos das paragens em uma lista de strings real para salvar na ordem.
+      final stops = _stopCtrls
+      .map((c) => c.text.trim())
+      .where((text) => text.isNotEmpty)
+      .toList();
+
       final order = ServiceOrder.create(
         id: newId(),
         clientId: client.id,
@@ -193,7 +224,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         serviceType: _serviceType,
         paymentMethod: _paymentMethod,
         price: parsedPrice,
-        addressSnapshot: client.address,
+        serviceAddress: _serviceAdressCtrl.text.trim(),
+        additionalStops: const [],
         phoneSnapshot: client.phone,
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       );
@@ -227,10 +259,17 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     }
   }
 
+//Libera a memória do controllers
   @override
   void dispose() {
     _priceCtrl.dispose();
     _notesCtrl.dispose();
+    _serviceAdressCtrl.dispose();
+     
+//fecha corretamente todos os controllers das paragens e evita vazamento de memória.
+      for (final ctrl in _stopCtrls) {
+    ctrl.dispose();
+  }
     super.dispose();
   }
 
@@ -323,7 +362,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                     ),
                   ),
                 ),
-
+//======================== Caixa do cliente =====================
                 const SizedBox(height: 16),
 
                 Padding(
@@ -361,7 +400,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                               _recomputeCanSave();
                             },
                           ),
-
+//======================== Caixa do motorista =====================
                           const SizedBox(height: 12),
 
                           DropdownButtonFormField<String>(
@@ -384,7 +423,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                               _recomputeCanSave();
                             },
                           ),
-
+//======================== Caixa data hora =====================
                           const SizedBox(height: 12),
 
                           Row(
@@ -408,7 +447,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                               ),
                             ],
                           ),
-
+//======================== Caixa do tipo de serviço =====================
                           const SizedBox(height: 12),
 
                           DropdownButtonFormField<ServiceType>(
@@ -431,7 +470,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                               _syncPriceWithServiceType();
                             },
                           ),
-
+//======================== Caixa do método de pagamento =====================
                           const SizedBox(height: 12),
 
                           DropdownButtonFormField<PaymentMethod>(
@@ -453,7 +492,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                               setState(() => _paymentMethod = v);
                             },
                           ),
-
+//======================== Caixa dos preços =====================
                           const SizedBox(height: 12),
 
                           TextFormField(
@@ -472,6 +511,96 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                             validator: _priceValidator,
                             onChanged: (_) => _recomputeCanSave(),
                           ),
+//======================== Caixa das paragens =====================
+                          const SizedBox(height: 12),
+
+                          TextFormField(
+                            controller: _serviceAdressCtrl,
+                            maxLines: 2,
+                            decoration: _fieldDecoration(
+                              label:'Morada do serviço *', 
+                              hint: 'Onde será feito o serviço', 
+                              icon: Icons.location_on_rounded,
+                              ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty){
+                              return 'A morada do serviço é obrigatória!';
+                            }
+                            return null;
+                          }
+                          ),
+//======================== Caixa das paragens =====================     
+                        const SizedBox(height: 12),
+
+Row(
+  children: [
+    const Expanded(
+      child: Text(
+        'Paragens (opcional)',
+        style: TextStyle(
+          fontWeight: FontWeight.w800,
+          fontSize: 14,
+          color: Color(0xFF111111),
+        ),
+      ),
+    ),
+    TextButton.icon(
+      onPressed: _addStop,
+      icon: const Icon(Icons.add_rounded),
+      label: const Text('Adicionar'),
+    ),
+  ],
+),
+
+if (_stopCtrls.isEmpty)
+  Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF6F7F8),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: brand.withOpacity(0.12)),
+    ),
+    child: const Text(
+      'Nenhuma paragem adicionada.',
+      style: TextStyle(color: Colors.black54),
+    ),
+  ),
+
+if (_stopCtrls.isNotEmpty)
+  Column(
+    children: List.generate(_stopCtrls.length, (index) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: index == _stopCtrls.length - 1 ? 0 : 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _stopCtrls[index],
+                maxLines: 2,
+                decoration: _fieldDecoration(
+                  label: 'Paragem ${index + 1}',
+                  hint: 'Morada da paragem',
+                  icon: Icons.place_rounded,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: () => _removeStop(index),
+              icon: const Icon(Icons.delete_outline_rounded),
+              color: Colors.red,
+            ),
+          ],
+        ),
+      );
+    }),
+  ),
+
+
+
+
+//======================== Caixa das observações =====================
 
                           const SizedBox(height: 12),
 
@@ -486,6 +615,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                           ),
                         ],
                       ),
+
+ //===========================ORDEM SALVA texto==============
                     ),
                   ),
                 ),

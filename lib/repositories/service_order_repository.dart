@@ -2,6 +2,8 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import '../models/order_status.dart';
 import '../models/service_order.dart';
+import '../models/job_stage.dart';
+
 
 class ServiceOrderRepository {
   Box<Map> get _box => Hive.box<Map>('orders');
@@ -42,4 +44,19 @@ class ServiceOrderRepository {
 
     await upsert(updated);
   }
+Future<void> advanceJobStage(String orderId) async {
+  final order = getById(orderId);
+  if (order == null) return;
+
+  final nextStage = order.jobStage.next;
+
+  if (nextStage == null) return;
+
+  final updated = order.copyWith(
+    jobStage: nextStage,
+    updatedAt: DateTime.now(),
+  );
+
+  await upsert(updated);
+}
 }

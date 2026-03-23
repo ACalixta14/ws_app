@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ws_app/models/payment_method.dart';
 import 'package:ws_app/services/supabase_orders_sync_service.dart';
 
+
+import '../models/job_stage.dart';
 import '../models/order_status.dart';
 import '../models/service_order.dart';
 import '../repositories/client_repository.dart';
@@ -41,6 +45,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
 
   bool _isSavingDisposal = false;
   bool _isCanceling = false;
+  bool _isAdvancingStage = false;
 
   @override
   void initState() {
@@ -87,6 +92,10 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       await widget.orderRepo.upsert(updated);
       _reloadFromRepo();
 
+      await SupabaseOrdersSyncService(
+        orderRepo: widget.orderRepo,
+      ).trySync();
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Nota de descarte salva')),
@@ -101,10 +110,61 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     }
   }
 
+  Future<void> _advanceJobStage() async {
+    if (_isAdvancingStage) return;
+    if (_order.status != OrderStatus.scheduled) return;
+    if (_order.jobStage.next == null) return;
+
+    HapticFeedback.mediumImpact();
+    setState(() => _isAdvancingStage = true);
+
+    try {
+      final previousStage = _order.jobStage;
+
+      await widget.orderRepo.advanceJobStage(_order.id);
+      _reloadFromRepo();
+   
+
+      final refreshed = widget.orderRepo.getById(_order.id);
+      if (refreshed == null) return;
+
+      await Supabase.instance.client.from('order_stage_history').insert({
+        'order_id': refreshed.id,
+        'driver_id': refreshed.driverId,
+        'stage': refreshed.jobStage.name,
+        'changed_at': refreshed.updatedAt.toUtc().toIso8601String(),
+      });
+
+      await SupabaseOrdersSyncService(
+        orderRepo: widget.orderRepo,
+      ).trySync();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Etapa alterada: ${previousStage.label} → ${refreshed.jobStage.label}',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao avançar etapa: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isAdvancingStage = false);
+    }
+  }
+
   Future<void> _markDone() async {
     if (_order.status != OrderStatus.scheduled) return;
 
     await widget.orderRepo.markDone(_order.id);
+
+    await SupabaseOrdersSyncService(
+      orderRepo: widget.orderRepo,
+    ).trySync();
 
     if (!mounted) return;
     Navigator.pop(context, true);
@@ -217,9 +277,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
             constraints: const BoxConstraints(maxWidth: maxContentWidth),
             child: Column(
               children: [
-                // =========================
-                // HEADER
-                // =========================
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
@@ -295,12 +352,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // =========================
-                // CLIENTE / RESUMO DA ORDEM
-                // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _cardShell(
@@ -329,9 +381,14 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           value: _order.serviceType.label,
                         ),
                         _InfoRow(
+                          label: 'Etapa',
+                          value: _order.jobStage.label,
+                        ),
+                        _InfoRow(
                           label: 'Pagamento',
                           value: _order.paymentMethod.label,
                         ),
+                        if(widget.isAdmin || _order.paymentMethod == PaymentMethod.cash)
                         _InfoRow(
                           label: 'Preço',
                           value: '€${_order.price.toStringAsFixed(0)}',
@@ -340,12 +397,18 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 ),
+               const SizedBox(height: 12),
 
+if (_order.status == OrderStatus.scheduled &&
+    _order.jobStage.next != null)
+  _toolButton(
+    icon: Icons.alt_route_rounded,
+    label: _isAdvancingStage
+        ? 'Atualizando etapa…'
+        : (_order.jobStage.actionLabel ?? ''),
+    onTap: _isAdvancingStage ? () {} : _advanceJobStage,
+  ), 
                 const SizedBox(height: 14),
-
-                // =========================
-                // ENDEREÇO
-                // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _cardShell(
@@ -369,12 +432,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
-                // =========================
-                // TELEFONE
-                // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _cardShell(
@@ -398,12 +456,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
-                // =========================
-                // OBSERVAÇÕES
-                // =========================
                 if ((_order.notes ?? '').trim().isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -421,13 +474,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       ),
                     ),
                   ),
-
                 if ((_order.notes ?? '').trim().isNotEmpty)
                   const SizedBox(height: 14),
-
-                // =========================
-                // NOTA DE DESCARTE
-                // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _cardShell(
@@ -461,16 +509,15 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
-                // =========================
-                // AÇÕES
-                // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
+                   
+                      if (_order.status == OrderStatus.scheduled &&
+                          _order.jobStage.next != null)
+                        const SizedBox(height: 10),
                       if (_order.status == OrderStatus.scheduled)
                         _primaryButton(
                           label: 'Concluir serviço',
@@ -480,7 +527,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         ),
                       if (_order.status == OrderStatus.scheduled)
                         const SizedBox(height: 10),
-                      if (widget.isAdmin && _order.status == OrderStatus.scheduled)
+                      if (widget.isAdmin &&
+                          _order.status == OrderStatus.scheduled)
                         _toolButton(
                           icon: Icons.cancel_rounded,
                           label: _isCanceling
@@ -489,7 +537,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           isDanger: true,
                           onTap: _isCanceling ? () {} : _cancelOrder,
                         ),
-                      if (widget.isAdmin && _order.status == OrderStatus.scheduled)
+                      if (widget.isAdmin &&
+                          _order.status == OrderStatus.scheduled)
                         const SizedBox(height: 10),
                       if (widget.isAdmin)
                         _secondaryButton(
@@ -500,12 +549,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
-                // =========================
-                // METADADOS
-                // =========================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _cardShell(
@@ -529,7 +573,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 10),
               ],
             ),
@@ -539,9 +582,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     );
   }
 
-  // =========================
-  // UI HELPERS
-  // =========================
   static Widget _cardShell({required Widget child}) {
     return Container(
       width: double.infinity,

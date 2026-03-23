@@ -1,6 +1,7 @@
 import 'payment_method.dart';
 import 'service_type.dart';
 import 'order_status.dart';
+import 'job_stage.dart';
 
 class ServiceOrder {
   final String id;
@@ -15,14 +16,22 @@ class ServiceOrder {
 
   final double price;
 
+  // legado: manter por enquanto para não quebrar telas antigas
   final String addressSnapshot;
+
+  // nova morada principal da ordem
+  final String serviceAddress;
+
+  // paragens opcionais da ordem
+  final List<String> additionalStops;
+
   final String phoneSnapshot;
 
   final String? notes;
 
-  // ✅ new fields (history / driver workflow)
   final OrderStatus status;
-  final String? disposalNote; // where it was dumped (driver writes)
+  final JobStage jobStage;
+  final String? disposalNote;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -35,9 +44,12 @@ class ServiceOrder {
     required this.paymentMethod,
     required this.price,
     required this.addressSnapshot,
+    required this.serviceAddress,
+    this.additionalStops = const [],
     required this.phoneSnapshot,
     this.notes,
     required this.status,
+    required this.jobStage,
     this.disposalNote,
     required this.createdAt,
     required this.updatedAt,
@@ -51,7 +63,8 @@ class ServiceOrder {
     required ServiceType serviceType,
     required PaymentMethod paymentMethod,
     double? price,
-    required String addressSnapshot,
+    required String serviceAddress,
+    List<String>? additionalStops,
     required String phoneSnapshot,
     String? notes,
   }) {
@@ -59,12 +72,18 @@ class ServiceOrder {
 
     double resolvedPrice;
     if (serviceType == ServiceType.miscellaneous) {
-      if (price == null) throw ArgumentError('price is required for miscellaneous');
-      if (price <= 0) throw ArgumentError('price must be > 0');
+      if (price == null) {
+        throw ArgumentError('price is required for miscellaneous');
+      }
+      if (price <= 0) {
+        throw ArgumentError('price must be > 0');
+      }
       resolvedPrice = price;
     } else {
       resolvedPrice = (price ?? defaultPrice ?? 0).toDouble();
-      if (resolvedPrice <= 0) throw ArgumentError('price must be > 0');
+      if (resolvedPrice <= 0) {
+        throw ArgumentError('price must be > 0');
+      }
     }
 
     final now = DateTime.now();
@@ -77,10 +96,13 @@ class ServiceOrder {
       serviceType: serviceType,
       paymentMethod: paymentMethod,
       price: resolvedPrice,
-      addressSnapshot: addressSnapshot,
+      addressSnapshot: serviceAddress,
+      serviceAddress: serviceAddress,
+      additionalStops: additionalStops ?? const [],
       phoneSnapshot: phoneSnapshot,
       notes: notes,
       status: OrderStatus.scheduled,
+      jobStage: JobStage.waiting,
       disposalNote: null,
       createdAt: now,
       updatedAt: now,
@@ -96,9 +118,12 @@ class ServiceOrder {
     PaymentMethod? paymentMethod,
     double? price,
     String? addressSnapshot,
+    String? serviceAddress,
+    List<String>? additionalStops,
     String? phoneSnapshot,
     String? notes,
     OrderStatus? status,
+    JobStage? jobStage,
     String? disposalNote,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -112,9 +137,12 @@ class ServiceOrder {
       paymentMethod: paymentMethod ?? this.paymentMethod,
       price: price ?? this.price,
       addressSnapshot: addressSnapshot ?? this.addressSnapshot,
+      serviceAddress: serviceAddress ?? this.serviceAddress,
+      additionalStops: additionalStops ?? this.additionalStops,
       phoneSnapshot: phoneSnapshot ?? this.phoneSnapshot,
       notes: notes ?? this.notes,
       status: status ?? this.status,
+      jobStage: jobStage ?? this.jobStage,
       disposalNote: disposalNote ?? this.disposalNote,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -131,9 +159,12 @@ class ServiceOrder {
       'paymentMethod': paymentMethod.name,
       'price': price,
       'addressSnapshot': addressSnapshot,
+      'serviceAddress': serviceAddress,
+      'additionalStops': additionalStops,
       'phoneSnapshot': phoneSnapshot,
       'notes': notes,
       'status': status.name,
+      'jobStage': jobStage.name,
       'disposalNote': disposalNote,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -149,17 +180,33 @@ class ServiceOrder {
       driverId: (data['driverId'] ?? '') as String,
       scheduledAt: DateTime.parse(data['scheduledAt'] as String),
       serviceType: ServiceType.values.byName(data['serviceType'] as String),
-      paymentMethod: PaymentMethod.values.byName(data['paymentMethod'] as String),
+      paymentMethod:
+          PaymentMethod.values.byName(data['paymentMethod'] as String),
       price: (data['price'] as num).toDouble(),
-      addressSnapshot: (data['addressSnapshot'] ?? '') as String,
+      addressSnapshot: (data['addressSnapshot'] ??
+              data['serviceAddress'] ??
+              '') as String,
+      serviceAddress: (data['serviceAddress'] ??
+              data['addressSnapshot'] ??
+              '') as String,
+      additionalStops:
+          (data['additionalStops'] as List?)?.map((e) => e.toString()).toList() ??
+              const [],
       phoneSnapshot: (data['phoneSnapshot'] ?? '') as String,
       notes: data['notes'] as String?,
       status: data['status'] == null
           ? OrderStatus.scheduled
           : OrderStatus.values.byName(data['status'] as String),
+      jobStage: data['jobStage'] == null
+          ? JobStage.waiting
+          : JobStage.values.byName(data['jobStage'] as String),
       disposalNote: data['disposalNote'] as String?,
-      createdAt: data['createdAt'] == null ? now : DateTime.parse(data['createdAt'] as String),
-      updatedAt: data['updatedAt'] == null ? now : DateTime.parse(data['updatedAt'] as String),
+      createdAt: data['createdAt'] == null
+          ? now
+          : DateTime.parse(data['createdAt'] as String),
+      updatedAt: data['updatedAt'] == null
+          ? now
+          : DateTime.parse(data['updatedAt'] as String),
     );
   }
 }

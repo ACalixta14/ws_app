@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'services/supabase_config.dart';
 import 'repositories/client_repository.dart';
 import 'repositories/driver_repository.dart';
 import 'repositories/service_order_repository.dart';
 import 'screens/role_selection_screen.dart';
-
 import 'screens/splash_screen.dart';
-import 'theme/app_theme.dart';
 import 'screens/watermark_background.dart';
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,12 @@ Future<void> main() async {
   await Hive.initFlutter();
   await Hive.openBox<Map>('clients');
   await Hive.openBox<Map>('orders');
+  await Hive.openBox('meta');
+
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
+  );
 
   runApp(const WsApp());
 }
@@ -41,10 +48,12 @@ class WsApp extends StatelessWidget {
       title: 'Waste Collection MVP',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      home: SplashScreen(
-        next: firstScreen,
-        duration: const Duration(seconds: 2),
-      ),
+   home: SplashScreen(
+  next: firstScreen,
+  clientRepo: clientRepo,
+  orderRepo: orderRepo,
+  duration: const Duration(seconds: 2),
+),
     );
   }
 }
