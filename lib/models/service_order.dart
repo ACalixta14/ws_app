@@ -16,13 +16,7 @@ class ServiceOrder {
 
   final double price;
 
-  // legado: manter por enquanto para não quebrar telas antigas
-  final String addressSnapshot;
-
-  // nova morada principal da ordem
   final String serviceAddress;
-
-  // paragens opcionais da ordem
   final List<String> additionalStops;
 
   final String phoneSnapshot;
@@ -43,7 +37,6 @@ class ServiceOrder {
     required this.serviceType,
     required this.paymentMethod,
     required this.price,
-    required this.addressSnapshot,
     required this.serviceAddress,
     this.additionalStops = const [],
     required this.phoneSnapshot,
@@ -96,7 +89,6 @@ class ServiceOrder {
       serviceType: serviceType,
       paymentMethod: paymentMethod,
       price: resolvedPrice,
-      addressSnapshot: serviceAddress,
       serviceAddress: serviceAddress,
       additionalStops: additionalStops ?? const [],
       phoneSnapshot: phoneSnapshot,
@@ -117,7 +109,6 @@ class ServiceOrder {
     ServiceType? serviceType,
     PaymentMethod? paymentMethod,
     double? price,
-    String? addressSnapshot,
     String? serviceAddress,
     List<String>? additionalStops,
     String? phoneSnapshot,
@@ -136,7 +127,6 @@ class ServiceOrder {
       serviceType: serviceType ?? this.serviceType,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       price: price ?? this.price,
-      addressSnapshot: addressSnapshot ?? this.addressSnapshot,
       serviceAddress: serviceAddress ?? this.serviceAddress,
       additionalStops: additionalStops ?? this.additionalStops,
       phoneSnapshot: phoneSnapshot ?? this.phoneSnapshot,
@@ -158,7 +148,6 @@ class ServiceOrder {
       'serviceType': serviceType.name,
       'paymentMethod': paymentMethod.name,
       'price': price,
-      'addressSnapshot': addressSnapshot,
       'serviceAddress': serviceAddress,
       'additionalStops': additionalStops,
       'phoneSnapshot': phoneSnapshot,
@@ -183,12 +172,7 @@ class ServiceOrder {
       paymentMethod:
           PaymentMethod.values.byName(data['paymentMethod'] as String),
       price: (data['price'] as num).toDouble(),
-      addressSnapshot: (data['addressSnapshot'] ??
-              data['serviceAddress'] ??
-              '') as String,
-      serviceAddress: (data['serviceAddress'] ??
-              data['addressSnapshot'] ??
-              '') as String,
+      serviceAddress: (data['serviceAddress'] ?? '') as String,
       additionalStops:
           (data['additionalStops'] as List?)?.map((e) => e.toString()).toList() ??
               const [],

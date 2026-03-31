@@ -4,6 +4,7 @@ import '../models/client.dart';
 import '../repositories/client_repository.dart';
 import '../repositories/service_order_repository.dart';
 import 'client_form_screen.dart';
+import '../screens/client_detail_screen.dart';
 
 class ClientsListScreen extends StatefulWidget {
   final ClientRepository clientRepo;
@@ -219,6 +220,7 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
                                 ],
                               ),
                             ),
+                            
                             const SizedBox(height: 12),
                             ListView.separated(
                               itemCount: clients.length,
@@ -230,9 +232,13 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
                                 final client = clients[index];
                                 return _clientTile(
                                   client: client,
-                                  onTap: () {
-                                    // Mantive vazio de propósito (se depois você
-                                    // quiser abrir detalhes/editar, encaixa aqui).
+                                  onTap: () async {
+                                    await Navigator.push(
+                                      context, 
+                                      MaterialPageRoute(
+                                        builder: (_) => ClientDetailScreen(client: client)
+                                        ),
+                                        );
                                   },
                                   onLongPress: () => _deleteClient(client),
                                 );
@@ -350,16 +356,15 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
                       fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    client.address,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
-                  ),
+                Text(
+  client.phone,
+  maxLines: 1,
+  overflow: TextOverflow.ellipsis,
+  style: const TextStyle(
+    color: Colors.grey,
+    fontSize: 12,
+  ),
+),
                 ],
               ),
             ),

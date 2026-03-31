@@ -10,6 +10,8 @@ import 'screens/role_selection_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/watermark_background.dart';
 import 'theme/app_theme.dart';
+import 'screens/auth_gate_screen.dart';
+import 'screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -5,7 +5,7 @@ class SupabaseClientMaps {
     return {
       'id': c.id,
       'name': c.name,
-      'address': c.address,
+      //'address': c.address,
       'phone': c.phone,
       'invoice_details': c.invoiceDetails,
       'location_link': c.locationLink,
@@ -18,7 +18,7 @@ class SupabaseClientMaps {
     return {
       'id': row['id'],
       'name': row['name'],
-      'address': row['address'],
+      'address': row['address'] as String?,
       'phone': row['phone'],
       'invoiceDetails': row['invoice_details'],
       'locationLink': row['location_link'],

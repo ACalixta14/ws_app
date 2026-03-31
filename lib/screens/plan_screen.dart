@@ -543,7 +543,7 @@ class _Section extends StatelessWidget {
                                     '$hh:$mm • $clientName',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w900,
-                                      fontSize: 13,
+                                      fontSize: 20,
                                       decoration: _statusDecoration(order),
                                       color:
                                           statusColor ??

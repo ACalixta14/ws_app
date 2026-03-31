@@ -42,7 +42,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
 
   void _recomputeValidity() {
     final valid = _nameCtrl.text.trim().isNotEmpty &&
-        _addressCtrl.text.trim().isNotEmpty &&
         _phoneCtrl.text.trim().isNotEmpty;
 
     if (valid != _isValid) {
@@ -78,7 +77,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       final client = Client(
         id: newId(),
         name: _nameCtrl.text.trim(),
-        address: _addressCtrl.text.trim(),
+        //address: _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
         phone: _phoneCtrl.text.trim(),
         invoiceDetails:
             _invoiceCtrl.text.trim().isEmpty ? null : _invoiceCtrl.text.trim(),
@@ -218,16 +217,17 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                             keyboardType: TextInputType.name,
                             icon: Icons.person_rounded,
                           ),
-                          const SizedBox(height: 12),
+                          //deletar se tudo der certo -------------------------
+                          /*const SizedBox(height: 12),
                           _field(
-                            label: 'Endereço *',
+                            label: 'Endereço ',
                             hint: 'Rua, cidade…',
                             controller: _addressCtrl,
                             textInputAction: TextInputAction.next,
-                            validator: (v) => _required(v, 'Endereço'),
+                            validator: (v) => null,
                             keyboardType: TextInputType.streetAddress,
                             icon: Icons.location_on_rounded,
-                          ),
+                          ),*/
                           const SizedBox(height: 12),
                           _field(
                             label: 'Telefone *',

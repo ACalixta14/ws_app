@@ -92,17 +92,23 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
     return o.driverId == _driverIdFilter;
   }
 
-  bool _matchesQuery(ServiceOrder o) {
-    final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return true;
+bool _matchesQuery(ServiceOrder o) {
+  final q = _query.trim().toLowerCase();
+  if (q.isEmpty) return true;
 
-    final client = widget.clientRepo.getById(o.clientId);
-    final clientName = (client?.name ?? '').toLowerCase();
+  final client = widget.clientRepo.getById(o.clientId);
+  final clientName = (client?.name ?? '').toLowerCase();
+  final serviceAddress = o.serviceAddress.toLowerCase();
 
-    return clientName.contains(q) ||
-        o.addressSnapshot.toLowerCase().contains(q) ||
-        o.phoneSnapshot.toLowerCase().contains(q);
-  }
+  final matchesAdditionalStops = o.additionalStops.any(
+    (stop) => stop.toLowerCase().contains(q),
+  );
+
+  return clientName.contains(q) ||
+      serviceAddress.contains(q) ||
+      matchesAdditionalStops ||
+      o.phoneSnapshot.toLowerCase().contains(q);
+}
 
   List<ServiceOrder> _getOrders() {
     final all = widget.orderRepo.getAll();

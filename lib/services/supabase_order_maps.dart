@@ -1,23 +1,24 @@
 import '../models/service_order.dart';
 
 class SupabaseOrderMaps {
-  static Map<String, dynamic> orderToRow(ServiceOrder o) {
+  Map<String, dynamic> toMap(ServiceOrder o) {
     return {
       'id': o.id,
       'client_id': o.clientId,
       'driver_id': o.driverId,
-      'scheduled_at': o.scheduledAt.toUtc().toIso8601String(),
+      'scheduled_at': o.scheduledAt.toIso8601String(),
       'service_type': o.serviceType.name,
       'payment_method': o.paymentMethod.name,
+      'status': o.status.name,
       'price': o.price,
-      'address_snapshot': o.addressSnapshot,
+      'service_address': o.serviceAddress,
+      'additional_stops': o.additionalStops,
       'phone_snapshot': o.phoneSnapshot,
       'notes': o.notes,
-      'status': o.status.name,
-      'job_stage':o.jobStage.name,
       'disposal_note': o.disposalNote,
-      'created_at': o.createdAt.toUtc().toIso8601String(),
-      'updated_at': o.updatedAt.toUtc().toIso8601String(),
+      'created_at': o.createdAt.toIso8601String(),
+      'updated_at': o.updatedAt.toIso8601String(),
+      'job_stage': o.jobStage.name,
     };
   }
 
@@ -30,7 +31,9 @@ class SupabaseOrderMaps {
       'serviceType': row['service_type'],
       'paymentMethod': row['payment_method'],
       'price': row['price'],
-      'addressSnapshot': row['address_snapshot'],
+      'serviceAddress': row['service_address'],
+      'additionalStops':
+          (row['additional_stops'] as List?)?.cast<String>() ?? const [],
       'phoneSnapshot': row['phone_snapshot'],
       'notes': row['notes'],
       'status': row['status'],

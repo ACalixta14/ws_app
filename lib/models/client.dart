@@ -1,7 +1,7 @@
 class Client {
   final String id;
   final String name;
-  final String address;
+  //final String? address;
   final String phone;
 
   /// Optional legacy field (no longer required for MVP).
@@ -9,14 +9,13 @@ class Client {
 
   final String? invoiceDetails;
 
-  // ✅ novos campos para sync LWW
   final DateTime createdAt;
   final DateTime updatedAt;
 
   const Client({
     required this.id,
     required this.name,
-    required this.address,
+    //this.address,
     required this.phone,
     this.locationLink,
     this.invoiceDetails,
@@ -28,6 +27,7 @@ class Client {
     String? id,
     String? name,
     String? address,
+    bool clearAddress = false,
     String? phone,
     String? locationLink,
     String? invoiceDetails,
@@ -37,7 +37,7 @@ class Client {
     return Client(
       id: id ?? this.id,
       name: name ?? this.name,
-      address: address ?? this.address,
+      //address: clearAddress ? null : (address ?? this.address),
       phone: phone ?? this.phone,
       locationLink: locationLink ?? this.locationLink,
       invoiceDetails: invoiceDetails ?? this.invoiceDetails,
@@ -50,7 +50,7 @@ class Client {
     return {
       'id': id,
       'name': name,
-      'address': address,
+      //'address': address,
       'phone': phone,
       'locationLink': locationLink,
       'invoiceDetails': invoiceDetails,
@@ -65,12 +65,16 @@ class Client {
     return Client(
       id: (data['id'] ?? '') as String,
       name: (data['name'] ?? '') as String,
-      address: (data['address'] ?? '') as String,
+      //address: data['address'] as String?,
       phone: (data['phone'] ?? '') as String,
       locationLink: data['locationLink'] as String?,
       invoiceDetails: data['invoiceDetails'] as String?,
-      createdAt: data['createdAt'] == null ? now : DateTime.parse(data['createdAt'] as String),
-      updatedAt: data['updatedAt'] == null ? now : DateTime.parse(data['updatedAt'] as String),
+      createdAt: data['createdAt'] == null
+          ? now
+          : DateTime.parse(data['createdAt'] as String),
+      updatedAt: data['updatedAt'] == null
+          ? now
+          : DateTime.parse(data['updatedAt'] as String),
     );
   }
 }

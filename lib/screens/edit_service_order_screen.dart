@@ -39,6 +39,8 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
 
   final _priceCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
+  final _serviceAddressCtrl = TextEditingController();
+  final List<TextEditingController> _stopCtrls = [];
 
   bool _canSave = true;
   bool _isSaving = false;
@@ -63,16 +65,38 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
 
     _priceCtrl.text = widget.order.price.toStringAsFixed(0);
     _notesCtrl.text = widget.order.notes ?? '';
+    _serviceAddressCtrl.text = widget.order.serviceAddress;
+
+    for (final stop in widget.order.additionalStops) {
+      _stopCtrls.add(TextEditingController(text: stop));
+    }
 
     _priceCtrl.addListener(_recomputeCanSave);
+    _serviceAddressCtrl.addListener(_recomputeCanSave);
     _recomputeCanSave();
   }
 
   void _recomputeCanSave() {
-    final priceOk = double.tryParse(_priceCtrl.text.trim()) != null;
-    final newValue = priceOk && !_isSaving;
-    if (newValue != _canSave) setState(() => _canSave = newValue);
-  }
+  final priceOk = double.tryParse(_priceCtrl.text.trim()) != null;
+  final addressOk = _serviceAddressCtrl.text.trim().isNotEmpty;
+
+  final newValue = priceOk && addressOk && !_isSaving;
+  if (newValue != _canSave) setState(() => _canSave = newValue);
+}
+
+//função adiciona nova paragem
+void _addStop(){
+  setState(() {
+    _stopCtrls.add(TextEditingController());
+  });
+}
+//função remove paragem
+void _removeStop(int index){
+  setState(() {
+    _stopCtrls[index].dispose();
+    _stopCtrls.removeAt(index);
+  });
+}
 
   DateTime _buildScheduledAt() {
     return DateTime(
@@ -132,15 +156,22 @@ class _EditServiceOrderScreenState extends State<EditServiceOrderScreen> {
     });
 
     try {
-      final updated = widget.order.copyWith(
-        driverId: _driverId,
-        scheduledAt: _buildScheduledAt(),
-        serviceType: _serviceType,
-        paymentMethod: _paymentMethod,
-        price: double.parse(_priceCtrl.text.trim()),
-        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-        updatedAt: DateTime.now(),
-      );
+    final stops = _stopCtrls
+    .map((c) => c.text.trim())
+    .where((text) => text.isNotEmpty)
+    .toList();
+
+final updated = widget.order.copyWith(
+  driverId: _driverId,
+  scheduledAt: _buildScheduledAt(),
+  serviceType: _serviceType,
+  paymentMethod: _paymentMethod,
+  price: double.parse(_priceCtrl.text.trim()),
+  serviceAddress: _serviceAddressCtrl.text.trim(),
+  additionalStops: stops,
+  notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+  updatedAt: DateTime.now(),
+);
 await widget.orderRepo.update(updated);
 
 await SupabaseOrdersSyncService(
@@ -233,6 +264,12 @@ Navigator.pop(context, true);
   void dispose() {
     _priceCtrl.dispose();
     _notesCtrl.dispose();
+    _serviceAddressCtrl.dispose();
+
+  for (final ctrl in _stopCtrls){
+    ctrl.dispose();
+  }
+
     super.dispose();
   }
 
@@ -380,28 +417,113 @@ Navigator.pop(context, true);
 
                           const SizedBox(height: 12),
 
-                          TextFormField(
-                            controller: _priceCtrl,
-                            keyboardType: TextInputType.number,
-                            decoration: _fieldDecoration(
-                              label: 'Preço (€) *',
-                              hint: 'Digite o preço final',
-                              icon: Icons.euro_rounded,
-                            ),
-                            validator: _priceValidator,
-                          ),
+                         TextFormField(
+  controller: _priceCtrl,
+  keyboardType: TextInputType.number,
+  decoration: _fieldDecoration(
+    label: 'Preço (€) *',
+    hint: 'Digite o preço final',
+    icon: Icons.euro_rounded,
+  ),
+  validator: _priceValidator,
+),
 
-                          const SizedBox(height: 12),
+const SizedBox(height: 12),
 
-                          TextFormField(
-                            controller: _notesCtrl,
-                            maxLines: 3,
-                            decoration: _fieldDecoration(
-                              label: 'Observações (opcional)',
-                              hint: 'Informações extras…',
-                              icon: Icons.notes_rounded,
-                            ),
-                          ),
+TextFormField(
+  controller: _serviceAddressCtrl,
+  maxLines: 2,
+  decoration: _fieldDecoration(
+    label: 'Morada principal *',
+    hint: 'Onde será feito o serviço',
+    icon: Icons.location_on_rounded,
+  ),
+  validator: (v) {
+    if (v == null || v.trim().isEmpty) {
+      return 'A morada principal é obrigatória';
+    }
+    return null;
+  },
+),
+
+const SizedBox(height: 12),
+
+Row(
+  children: [
+    const Expanded(
+      child: Text(
+        'Paragens (opcional)',
+        style: TextStyle(
+          fontWeight: FontWeight.w800,
+          fontSize: 14,
+          color: Color(0xFF111111),
+        ),
+      ),
+    ),
+    TextButton.icon(
+      onPressed: _addStop,
+      icon: const Icon(Icons.add_rounded),
+      label: const Text('Adicionar'),
+    ),
+  ],
+),
+
+if (_stopCtrls.isEmpty)
+  Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF6F7F8),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: brand.withOpacity(0.12)),
+    ),
+    child: const Text(
+      'Nenhuma paragem adicionada.',
+      style: TextStyle(color: Colors.black54),
+    ),
+  ),
+
+if (_stopCtrls.isNotEmpty)
+  Column(
+    children: List.generate(_stopCtrls.length, (index) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: index == _stopCtrls.length - 1 ? 0 : 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _stopCtrls[index],
+                maxLines: 2,
+                decoration: _fieldDecoration(
+                  label: 'Paragem ${index + 1}',
+                  hint: 'Morada da paragem',
+                  icon: Icons.place_rounded,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: () => _removeStop(index),
+              icon: const Icon(Icons.delete_outline_rounded),
+              color: Colors.red,
+            ),
+          ],
+        ),
+      );
+    }),
+  ),
+
+const SizedBox(height: 12),
+
+TextFormField(
+  controller: _notesCtrl,
+  maxLines: 3,
+  decoration: _fieldDecoration(
+    label: 'Observações (opcional)',
+    hint: 'Informações extras…',
+    icon: Icons.notes_rounded,
+  ),
+),
                         ],
                       ),
                     ),

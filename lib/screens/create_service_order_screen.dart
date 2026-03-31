@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/client.dart';
 import '../models/id_helper.dart';
 import '../models/payment_method.dart';
 import '../models/service_order.dart';
@@ -46,7 +47,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 //cria uma "caixinha de texto controlada"
   final _priceCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
-  final _serviceAdressCtrl = TextEditingController();
+  final _serviceAddressCtrl = TextEditingController();
 //cada paragem vai ter sua própria caixa de texto||Essa lista guarda todas elas
   final List<TextEditingController>_stopCtrls = [];
 
@@ -60,7 +61,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     _syncPriceWithServiceType();
     _priceCtrl.addListener(_recomputeCanSave);
     _notesCtrl.addListener(_recomputeCanSave);
-    _serviceAdressCtrl.addListener(_recomputeCanSave);
+    _serviceAddressCtrl.addListener(_recomputeCanSave);
     _recomputeCanSave();
   }
 
@@ -92,7 +93,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   void _recomputeCanSave() {
     final hasClient = _clientId != null;
     final hasDriver = _driverId != null;
-    final hasServiceAddress = _serviceAdressCtrl.text.trim().isNotEmpty;
+    final hasServiceAddress = _serviceAddressCtrl.text.trim().isNotEmpty;
 
     final priceOk = _serviceType == ServiceType.miscellaneous
         ? (_priceCtrl.text.trim().isNotEmpty &&
@@ -178,6 +179,66 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     }
   }
 
+    Client? _selectedClient(List<Client> clients) {
+    if (_clientId == null) return null;
+    try {
+      return clients.firstWhere((c) => c.id == _clientId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _pickClient(List<Client> clients) async {
+    final selected = await showModalBottomSheet<Client>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _ClientPickerSheet(
+        clients: clients,
+        initialClientId: _clientId,
+      ),
+    );
+
+    if (selected == null) return;
+
+    setState(() => _clientId = selected.id);
+    _recomputeCanSave();
+  }
+
+  List<String> _previousAddressesForSelectedClient() {
+    if (_clientId == null) return const [];
+
+    final orders = widget.orderRepo.getAll();
+
+    final values = <String>[];
+    final seen = <String>{};
+
+    for (final order in orders) {
+      if (order.clientId != _clientId) continue;
+
+      final mainAddress = order.serviceAddress.trim();
+      if (mainAddress.isNotEmpty && seen.add(mainAddress.toLowerCase())) {
+        values.add(mainAddress);
+      }
+
+      for (final stop in order.additionalStops) {
+        final text = stop.trim();
+        if (text.isNotEmpty && seen.add(text.toLowerCase())) {
+          values.add(text);
+        }
+      }
+    }
+
+    return values;
+  }
+
+  void _applyPreviousAddress(String address) {
+    setState(() {
+      _serviceAddressCtrl.text = address;
+    });
+    _recomputeCanSave();
+  }
+
   Future<void> _save() async {
     if (_isSaving) return;
 
@@ -224,8 +285,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         serviceType: _serviceType,
         paymentMethod: _paymentMethod,
         price: parsedPrice,
-        serviceAddress: _serviceAdressCtrl.text.trim(),
-        additionalStops: const [],
+        serviceAddress: _serviceAddressCtrl.text.trim(),
+        additionalStops: stops,
         phoneSnapshot: client.phone,
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       );
@@ -259,12 +320,12 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     }
   }
 
-//Libera a memória do controllers
+//Libera os cotrollers quando a tela fecha para evitar vazamento de memória
   @override
   void dispose() {
     _priceCtrl.dispose();
     _notesCtrl.dispose();
-    _serviceAdressCtrl.dispose();
+    _serviceAddressCtrl.dispose();
      
 //fecha corretamente todos os controllers das paragens e evita vazamento de memória.
       for (final ctrl in _stopCtrls) {
@@ -277,6 +338,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   Widget build(BuildContext context) {
     final clients = widget.clientRepo.getAll();
     final drivers = widget.driverRepo.getAll();
+    final previousAddresses = _previousAddressesForSelectedClient();
     const double maxContentWidth = 520;
 
     if (clients.isEmpty) {
@@ -379,27 +441,49 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                             title: 'Detalhes da Ordem',
                           ),
                           const SizedBox(height: 12),
+FormField<String>(
+  initialValue: _clientId,
+  validator: (v) => _requiredDropdown(v, 'Cliente'),
+  builder: (field) {
+    final selectedClient = _selectedClient(clients);
 
-                          DropdownButtonFormField<String>(
-                            value: _clientId,
-                            decoration: _ddDecoration(
-                              label: 'Cliente *',
-                              icon: Icons.people_alt_rounded,
-                            ),
-                            items: clients
-                                .map(
-                                  (c) => DropdownMenuItem(
-                                    value: c.id,
-                                    child: Text(c.name),
-                                  ),
-                                )
-                                .toList(),
-                            validator: (v) => _requiredDropdown(v, 'Cliente'),
-                            onChanged: (v) {
-                              setState(() => _clientId = v);
-                              _recomputeCanSave();
-                            },
-                          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () async {
+            await _pickClient(clients);
+            field.didChange(_clientId);
+          },
+          child: InputDecorator(
+            decoration: _ddDecoration(
+              label: 'Cliente *',
+              icon: Icons.people_alt_rounded,
+            ).copyWith(
+              errorText: field.errorText,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    selectedClient?.name ?? 'Pesquisar cliente',
+                    style: TextStyle(
+                      color: selectedClient == null
+                          ? Colors.black54
+                          : Colors.black87,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.search_rounded),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  },
+),
 //======================== Caixa do motorista =====================
                           const SizedBox(height: 12),
 
@@ -515,7 +599,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                           const SizedBox(height: 12),
 
                           TextFormField(
-                            controller: _serviceAdressCtrl,
+                            controller: _serviceAddressCtrl,
                             maxLines: 2,
                             decoration: _fieldDecoration(
                               label:'Morada do serviço *', 
@@ -529,6 +613,33 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                             return null;
                           }
                           ),
+//======================== Moradas anteriores ===================== 
+
+if (_clientId != null && previousAddresses.isNotEmpty) ...[
+  const SizedBox(height: 10),
+  const Align(
+    alignment: Alignment.centerLeft,
+    child: Text(
+      'Moradas anteriores deste cliente',
+      style: TextStyle(
+        fontWeight: FontWeight.w800,
+        fontSize: 14,
+        color: Color(0xFF111111),
+      ),
+    ),
+  ),
+  const SizedBox(height: 8),
+  Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: previousAddresses.map((address) {
+      return ActionChip(
+        label: Text(address),
+        onPressed: () => _applyPreviousAddress(address),
+      );
+    }).toList(),
+  ),
+],                         
 //======================== Caixa das paragens =====================     
                         const SizedBox(height: 12),
 
@@ -1016,6 +1127,97 @@ class _SectionTitle extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+class _ClientPickerSheet extends StatefulWidget {
+  final List<Client> clients;
+  final String? initialClientId;
+
+  const _ClientPickerSheet({
+    required this.clients,
+    required this.initialClientId,
+  });
+
+  @override
+  State<_ClientPickerSheet> createState() => _ClientPickerSheetState();
+}
+
+class _ClientPickerSheetState extends State<_ClientPickerSheet> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = widget.clients.where((c) {
+      final q = _query.trim().toLowerCase();
+      if (q.isEmpty) return true;
+
+      return c.name.toLowerCase().contains(q) ||
+          c.phone.toLowerCase().contains(q);
+    }).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _searchCtrl,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Buscar cliente',
+                hintText: 'Digite nome ou telefone',
+                prefixIcon: Icon(Icons.search_rounded),
+              ),
+              onChanged: (v) => setState(() => _query = v),
+            ),
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 420),
+              child: filtered.isEmpty
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Text('Nenhum cliente encontrado'),
+                      ),
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (_, index) {
+                        final client = filtered[index];
+                        final isSelected = client.id == widget.initialClientId;
+
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            client.name,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          subtitle: Text(client.phone),
+                          trailing: isSelected
+                              ? const Icon(Icons.check_circle_rounded)
+                              : null,
+                          onTap: () => Navigator.pop(context, client),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

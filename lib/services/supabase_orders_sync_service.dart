@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/rendering.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -46,7 +47,8 @@ class SupabaseOrdersSyncService {
         .toList();
 
     if (localChanged.isNotEmpty) {
-      final rows = localChanged.map(SupabaseOrderMaps.orderToRow).toList();
+      final mapper = SupabaseOrderMaps();
+      final rows = localChanged.map(mapper.toMap).toList();
 
       // Recomendado: usar RPC LWW (upsert com WHERE excluded.updated_at > existing.updated_at)
       // Se você ainda não criou as funções SQL, troque por .from('service_orders').upsert(rows)

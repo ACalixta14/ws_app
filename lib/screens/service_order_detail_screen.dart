@@ -331,7 +331,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                                 '$hh:$mm • ${_order.status.label}',
                                 style: const TextStyle(
                                   color: Colors.white70,
-                                  fontSize: 14,
+                                  fontSize: 20,
                                 ),
                               ),
                             ],
@@ -409,29 +409,108 @@ if (_order.status == OrderStatus.scheduled &&
     onTap: _isAdvancingStage ? () {} : _advanceJobStage,
   ), 
                 const SizedBox(height: 14),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _cardShell(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const _SectionTitle(
-                          icon: Icons.location_on_rounded,
-                          title: 'Endereço',
-                        ),
-                        const SizedBox(height: 10),
-                        SelectableText(_order.addressSnapshot),
-                        const SizedBox(height: 12),
-                        _toolButton(
-                          icon: Icons.copy_rounded,
-                          label: 'Copiar endereço',
-                          onTap: () =>
-                              _copy(_order.addressSnapshot, 'Endereço copiado'),
-                        ),
-                      ],
-                    ),
-                  ),
+        Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  child: _cardShell(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionTitle(
+          icon: Icons.location_on_rounded,
+          title: 'Localização do serviço',
+        ),
+        const SizedBox(height: 10),
+
+        const Text(
+          'Morada principal',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF111111),
+          ),
+        ),
+        const SizedBox(height: 6),
+        SelectableText(_order.serviceAddress),
+
+        const SizedBox(height: 12),
+        _toolButton(
+          icon: Icons.copy_rounded,
+          label: 'Copiar morada principal',
+          onTap: () => _copy(
+            _order.serviceAddress,
+            'Morada principal copiada',
+          ),
+        ),
+
+        if (_order.additionalStops.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          const Text(
+            'Paragens',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF111111),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...List.generate(_order.additionalStops.length, (index) {
+            final stop = _order.additionalStops[index];
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == _order.additionalStops.length - 1 ? 0 : 10,
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF6F7F8),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: brand.withOpacity(0.12)),
                 ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: brand.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${index + 1}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                          color: brand,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        stop,
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => _copy(
+                        stop,
+                        'Paragem ${index + 1} copiada',
+                      ),
+                      icon: const Icon(Icons.copy_rounded),
+                      color: brand,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ],
+    ),
+  ),
+),
                 const SizedBox(height: 14),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
