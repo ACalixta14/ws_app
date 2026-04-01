@@ -7,12 +7,15 @@ import 'plan_screen.dart';
 import 'role_selection_screen.dart';
 
 class DriverHomeScreen extends StatelessWidget {
+  final String driverId; //conexão com auth_gate
+
   final ClientRepository clientRepo;
   final DriverRepository driverRepo;
   final ServiceOrderRepository orderRepo;
 
   const DriverHomeScreen({
     super.key,
+    required this.driverId,
     required this.clientRepo,
     required this.driverRepo,
     required this.orderRepo,
@@ -183,7 +186,7 @@ class DriverHomeScreen extends StatelessWidget {
                                           orderRepo: orderRepo,
                                           driverRepo: driverRepo,
                                           clientRepo: clientRepo,
-                                          driverId: d.id,
+                                          driverId: driverId,
                                           isAdmin: false,
                                         ),
                                       ),

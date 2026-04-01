@@ -38,16 +38,14 @@ class WsApp extends StatelessWidget {
     final driverRepo = DriverRepository();
     final orderRepo = ServiceOrderRepository();
 
-    final firstScreen = WatermarkBackground(
-      child: RoleSelectionScreen(
+    final firstScreen = AuthGateScreen(
         clientRepo: clientRepo,
         driverRepo: driverRepo,
         orderRepo: orderRepo,
-      ),
-    );
+      );
 
     return MaterialApp(
-      title: 'Waste Collection MVP',
+      title: 'Weslly Entulhos e Remodelações',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
    home: SplashScreen(

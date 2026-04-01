@@ -142,7 +142,9 @@ class RoleSelectionScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      const SizedBox(height: 12),
+
+//==========REMOVER ASSIM QUE A AUTENTICAÇÃO ESTIVER CORRETA============================                      
+                      /*const SizedBox(height: 12),
                       _roleCard(
                         icon: Icons.local_shipping_rounded,
                         title: 'Entrar como Motorista',
@@ -159,7 +161,7 @@ class RoleSelectionScreen extends StatelessWidget {
                             ),
                           );
                         },
-                      ),
+                      ),*/
                     ],
                   ),
                 ),

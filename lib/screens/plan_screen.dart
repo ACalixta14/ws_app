@@ -192,6 +192,7 @@ class _PlanScreenState extends State<PlanScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => DriverHomeScreen(
+                                    driverId: widget.driverId!,
                                     clientRepo: widget.clientRepo,
                                     driverRepo: widget.driverRepo,
                                     orderRepo: widget.orderRepo,
