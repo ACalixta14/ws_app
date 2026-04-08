@@ -293,12 +293,15 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
       await widget.orderRepo.add(order);
 
-      await SupabaseSyncService(
-        clientRepo: widget.clientRepo,
-        orderRepo: widget.orderRepo,
-      ).trySyncAll();
+/*await SupabaseSyncService(
+  clientRepo: widget.clientRepo,
+  orderRepo: widget.orderRepo,
+).trySyncAll();
+*/
 
-      await SupabaseOrdersSyncService(orderRepo: widget.orderRepo).trySync();
+await SupabaseOrdersSyncService(
+  orderRepo: widget.orderRepo,
+).sync();
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

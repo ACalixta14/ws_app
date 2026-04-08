@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../repositories/client_repository.dart';
 import '../repositories/driver_repository.dart';
 import '../repositories/service_order_repository.dart';
-import '../services/manual_json_sync_service.dart';
 import 'client_list_screen.dart';
 import 'create_service_order_screen.dart';
 import 'order_history_screen.dart';
 import 'plan_screen.dart';
-import 'role_selection_screen.dart';
+import 'auth_gate_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   final ClientRepository clientRepo;
@@ -24,88 +24,6 @@ class AdminHomeScreen extends StatelessWidget {
 
   static const Color brand = Color(0xFF044950);
   static const Color brand2 = Color(0xFF0A6C74);
-
-  Future<void> _exportSyncJson(BuildContext context) async {
-    try {
-      await ManualJsonSyncService.exportAndShare(
-        clientRepo: clientRepo,
-        orderRepo: orderRepo,
-      );
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Exportação pronta para compartilhar')),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha na exportação: $e')),
-      );
-    }
-  }
-
-  Future<void> _importSyncJson(BuildContext context) async {
-    try {
-      final result = await ManualJsonSyncService.importFromPickerAndMerge(
-        clientRepo: clientRepo,
-        orderRepo: orderRepo,
-      );
-
-      if (!context.mounted) return;
-
-      await showDialog<void>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('Resumo da importação'),
-          content: Text(
-            'Clientes importados: ${result.clientsImported}\n'
-            'Ordens importadas: ${result.ordersImported}\n'
-            'Ordens ignoradas (mais antigas): ${result.ordersSkippedOlder}',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha na importação: $e')),
-      );
-    }
-  }
-
-  Future<void> _clearAllData(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Limpar todos os dados de teste?'),
-        content: const Text('Isso irá apagar TODOS os clientes e ordens.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Clear'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    await orderRepo.clear();
-    await clientRepo.clear();
-
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Todos os dados foram apagados')),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,37 +60,40 @@ class AdminHomeScreen extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // ✅ BOTÃO VOLTAR (para a tela de escolha - imagem 2)
-                        InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: () {
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                builder: (_) => RoleSelectionScreen(
-                                  clientRepo: clientRepo,
-                                  driverRepo: driverRepo,
-                                  orderRepo: orderRepo,
-                                ),
-                              ),
-                              (route) => false,
-                            );
-                          },
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.14),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.18),
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_rounded,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
+             InkWell(
+  borderRadius: BorderRadius.circular(14),
+  onTap: () async {
+    await Supabase.instance.client.auth.signOut();
+
+    if (!context.mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => AuthGateScreen(
+          clientRepo: clientRepo,
+          driverRepo: driverRepo,
+          orderRepo: orderRepo,
+        ),
+      ),
+      (route) => false,
+    );
+  },
+  child: Container(
+    width: 44,
+    height: 44,
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.14),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(
+        color: Colors.white.withOpacity(0.18),
+      ),
+    ),
+    child: const Icon(
+      Icons.logout_rounded,
+      color: Colors.white,
+    ),
+  ),
+),
 
                         const SizedBox(width: 14),
 
@@ -301,79 +222,6 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 18),
-
-                // =========================
-                // SYNC & TOOLS
-                // =========================
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              brand.withOpacity(0.12),
-                              brand2.withOpacity(0.10),
-                            ],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: brand.withOpacity(0.18)),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.sync_rounded, color: brand),
-                            SizedBox(width: 10),
-                            Text(
-                              'Sincronização & Ferramentas',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF111111),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _toolButton(
-                              icon: Icons.upload_file_rounded,
-                              label: 'Exportar JSON',
-                              onTap: () => _exportSyncJson(context),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _toolButton(
-                              icon: Icons.download_rounded,
-                              label: 'Importar JSON',
-                              onTap: () => _importSyncJson(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      _toolButton(
-                        icon: Icons.delete_outline_rounded,
-                        label: 'Limpar dados de teste',
-                        isDanger: true,
-                        onTap: () => _clearAllData(context),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -424,53 +272,6 @@ class AdminHomeScreen extends StatelessWidget {
                 fontSize: 12,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  static Widget _toolButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    bool isDanger = false,
-  }) {
-    final border =
-        isDanger ? Colors.red.withOpacity(0.35) : brand.withOpacity(0.18);
-    final bg = isDanger ? Colors.red.withOpacity(0.06) : Colors.white;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: border),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 12,
-              color: Colors.black.withOpacity(0.04),
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: isDanger ? Colors.red : brand),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: isDanger ? Colors.red : const Color(0xFF111111),
-                ),
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.black26),
           ],
         ),
       ),

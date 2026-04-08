@@ -92,7 +92,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       // 2) depois sincroniza
       await SupabaseClientsSyncService(
         clientRepo: widget.clientRepo,
-      ).trySync();
+      ).sync();
 
       if (!mounted) return;
       Navigator.pop(context, true);

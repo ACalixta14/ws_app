@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/order_status.dart';
 import '../models/service_order.dart';
@@ -8,9 +9,9 @@ import '../repositories/driver_repository.dart';
 import '../repositories/service_order_repository.dart';
 import '../services/data_filters.dart';
 import '../services/supabase_orders_sync_service.dart';
-import 'driver_home_screen.dart';
-import 'role_selection_screen.dart';
 import 'service_order_detail_screen.dart';
+import 'auth_gate_screen.dart';
+import '../screens/admin_home_screen.dart';
 
 class PlanScreen extends StatefulWidget {
   final ServiceOrderRepository orderRepo;
@@ -119,45 +120,58 @@ class _PlanScreenState extends State<PlanScreen> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: () {
-                            final nav = Navigator.of(context);
-                            if (nav.canPop()) {
-                              nav.pop();
-                            } else {
-                              nav.pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                  builder: (_) => RoleSelectionScreen(
-                                    clientRepo: widget.clientRepo,
-                                    driverRepo: widget.driverRepo,
-                                    orderRepo: widget.orderRepo,
-                                  ),
-                                ),
-                                (route) => false,
-                              );
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.14),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.18),
-                              ),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(
-                                  Icons.arrow_back_rounded,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(width: 8),
-                              ],
-                            ),
-                          ),
-                        ),
+     InkWell(
+  borderRadius: BorderRadius.circular(14),
+  onTap: () async {
+    if (widget.isAdmin) {
+      final nav = Navigator.of(context);
+      if (nav.canPop()) {
+        nav.pop();
+      } else {
+        nav.pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => AdminHomeScreen(
+              clientRepo: widget.clientRepo,
+              driverRepo: widget.driverRepo,
+              orderRepo: widget.orderRepo,
+            ),
+          ),
+          (route) => false,
+        );
+      }
+      return;
+    }
+
+    await Supabase.instance.client.auth.signOut();
+
+    if (!context.mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => AuthGateScreen(
+          clientRepo: widget.clientRepo,
+          driverRepo: widget.driverRepo,
+          orderRepo: widget.orderRepo,
+        ),
+      ),
+      (route) => false,
+    );
+  },
+  child: Container(
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.14),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(
+        color: Colors.white.withOpacity(0.18),
+      ),
+    ),
+    child: Icon(
+      widget.isAdmin ? Icons.arrow_back_rounded : Icons.logout_rounded,
+      color: Colors.white,
+    ),
+  ),
+),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -183,38 +197,7 @@ class _PlanScreenState extends State<PlanScreen> {
                               ),
                             ],
                           ),
-                        ),
-                        if (!widget.isAdmin)
-                          InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => DriverHomeScreen(
-                                    driverId: widget.driverId!,
-                                    clientRepo: widget.clientRepo,
-                                    driverRepo: widget.driverRepo,
-                                    orderRepo: widget.orderRepo,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.14),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.18),
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.switch_account_rounded,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                        ),           
                       ],
                     ),
                   ),
